@@ -4,6 +4,9 @@ QSpinBox, QTextEdit, QFileDialog, QMessageBox, QScrollArea,QButtonGroup, QHeader
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QFont, QIcon, QColor
 from styles import get_dark_stylesheet
+from Project.Simplex import simplex_method
+import numpy as np
+
 class LPSolverGUI(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -409,12 +412,72 @@ class LPSolverGUI(QMainWindow):
 
         QMessageBox.information(self, "Solving Problem",f"Solving using {method}.")                                
 
-        self.tabs.setCurrentIndex(1)
+        
 #################################################################################################################################
         # Update solution tab with dummy data
-        self.solution_status.setText("Optimal")
+      
+        coff_of_objectiveFunction = [] 
+        A = []  
+        b = []  
+        message="Optimal"
+
+        for col in range(self.obj_table.columnCount()):
+            header = self.obj_table.horizontalHeaderItem(col).text()
+            item = self.obj_table.item(0, col)
+            value = item.text() if item else "0"  
+            numeric_value = float(value)
+            coff_of_objectiveFunction.append(numeric_value)
+            
+    
+          
+        for row in range(self.const_table.rowCount()):
+            constraint_row = []
+            
+            # Get the coefficients (excluding type and RHS columns)
+            for col in range(self.const_table.columnCount() - 2):
+                item = self.const_table.item(row, col)
+                value = item.text() if item else "0"
+                numeric_value = float(value)
+                constraint_row.append(numeric_value)
+                   
+            A.append(constraint_row)    
+            rhs_item = self.const_table.item(row, self.const_table.columnCount() - 1)
+            rhs_value = rhs_item.text() if rhs_item else "0"
+            
+            numeric_rhs = float(rhs_value)
+            b.append(numeric_rhs)
+
+       
+        A = np.array(A)
+        b = np.array(b)
+        coff_of_objectiveFunction=np.array(coff_of_objectiveFunction)
+        
+
+
+        try:
+    
+
+            if method == "Standard Simplex":
+                self.check_constraints_type()
+                
+                solution, iterations = simplex_method(coff_of_objectiveFunction, A, b, self.obj_type.currentText()=="Maximize")
+            # elif method == "Two-Phase Method":
+            #     # solution, iterations = two_phase_method(coff_of_objectiveFunction, A, b, self.obj_type.currentText()=="Maximize")
+            # elif method== "BIG-M Method":
+            #     # solution, iterations = big_m_method(coff_of_objectiveFunction, A, b, self.obj_type.currentText()=="Maximize")
+            # else:
+            #     
+               
+
+        except Exception as e:
+            QMessageBox.warning(self, "Error", str(e))
+            return
+            
+
+        self.tabs.setCurrentIndex(1)
+        self.solution_status.setText(message)
         self.solution_status.setStyleSheet("font-weight: bold; color: #8FBCBB;")
-        self.obj_value.setText("100")
+        self.obj_value.setText(str(iterations[-1][-1][-1]))
         self.obj_value.setStyleSheet("font-weight: bold; color: #8FBCBB;")
 
         # Update solution table
@@ -423,7 +486,7 @@ class LPSolverGUI(QMainWindow):
 
         for i in range(num_vars):
             self.solution_table.setItem(i, 0, QTableWidgetItem(f"x{i + 1}"))
-            self.solution_table.setItem(i, 1, QTableWidgetItem(f"{i}"))
+            self.solution_table.setItem(i, 1, QTableWidgetItem(f"{solution[i]}"))
 
 
         # If goal programming, show goal satisfaction
@@ -466,6 +529,15 @@ class LPSolverGUI(QMainWindow):
             QMessageBox.warning(self, "Invalid Input",
                                 "Please ensure all coefficients and RHS values are valid numbers.")
             return False
+    def check_constraints_type(self):
+            for row in range(self.const_table.rowCount()):
+                constraint_type = self.const_table.cellWidget(row, self.const_table.columnCount() - 2).currentText()
+                
+                if constraint_type != "≤":
+                    raise Exception("Only less than or equal (≤) constraints are allowed for this method")
+            
+            return True
+            
 
 
 if __name__ == "__main__":

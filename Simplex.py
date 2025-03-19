@@ -62,15 +62,15 @@ def simplex_method(c, A, b, isMax):
     return solution, iterations
 
 # Example usage
-c = np.array([3, 4])  # Coefficients of the objective function on the form z = 3*x1 + 2*x2 ==> z -3*x1 - 2*x2 =0
-A = np.array([[1, 1], [1, 2]])  # Coefficients of the constraints
-b = np.array([40, 60])  # Right-hand side of the constraints
+c = np.array([5, -4,6,-8])  # Coefficients of the objective function on the form z = 3*x1 + 2*x2 ==> z -3*x1 - 2*x2 =0
+A = np.array([[1,2,2,4], [ 2,-1,1,2],[4,-2,1,-1]])  # Coefficients of the constraints
+b = np.array([40, 8,10])  # Right-hand side of the constraints
 
-solution, iterations = simplex_method(c, A, b , 1)   # 1 for maximization and 0 for minimization
+solution, iterations = simplex_method(c, A, b , 0)   # 1 for maximization and 0 for minimization
 
-print("Optimal solution:", solution)
+# print("Optimal solution:", solution)
 
-for i, iteration in enumerate(iterations):
-    print(f"Iteration {i+1}:")
-    print(iteration)
-    print()
+# for i, iteration in enumerate(iterations):
+#     print(f"Iteration {i+1}:")
+#     print(iteration)
+#     print()
