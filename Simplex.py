@@ -3,6 +3,13 @@ def simplex_method(c, A, b, isMax):
     # Number of variables and constraints
     num_vars = len(c)
     num_constraints = len(b)
+    mainRow = []
+    entering_leaving_var = []
+    for i in range(num_vars):
+        mainRow.append("x" + str(i+1))
+    for i in range (num_constraints):
+        mainRow.append("s" + str(i+1))
+    
     
     tableau = np.zeros((num_constraints + 1, num_vars + num_constraints + 1))
     
@@ -14,6 +21,7 @@ def simplex_method(c, A, b, isMax):
     iterations = []
     
     while True:
+        entering_leaving_var = [] 
         iterations.append(np.copy(tableau))
 
         if (isMax==1):    # maximization
@@ -23,6 +31,8 @@ def simplex_method(c, A, b, isMax):
             
             # Find the entering variable (most -ve coefficient in the objective row)
             entering_var = np.argmin(tableau[-1, :-1])
+            entering_leaving_var.append(mainRow[entering_var])
+
 
         else :   #minimization
             # Check if we reach the optimal soln.
@@ -31,6 +41,7 @@ def simplex_method(c, A, b, isMax):
             
             # Find the entering variable (most +ve coefficient in the objective row)
             entering_var = np.argmax(tableau[-1, :-1])
+            entering_leaving_var.append(mainRow[entering_var])
 
         # minimum ratio test
         ratios = []
@@ -44,6 +55,8 @@ def simplex_method(c, A, b, isMax):
             raise Exception("Problem is unbounded")
         
         leaving_var = np.argmin(ratios)
+        entering_leaving_var.append(mainRow[num_vars + leaving_var])
+        iterations.append(entering_leaving_var)
         
         # Pivot operation
         pivot_element = tableau[leaving_var, entering_var]
