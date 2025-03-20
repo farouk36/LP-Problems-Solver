@@ -4,8 +4,10 @@ QSpinBox, QTextEdit, QFileDialog, QMessageBox, QScrollArea,QButtonGroup, QHeader
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QFont, QIcon, QColor
 from styles import get_dark_stylesheet
-from Project.Simplex import simplex_method
+from Simplex import simplex_method
 import numpy as np
+import os
+os.environ["QT_QPA_PLATFORM"] = "wayland"
 
 class LPSolverGUI(QMainWindow):
     def __init__(self):
