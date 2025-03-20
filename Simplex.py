@@ -5,10 +5,12 @@ def simplex_method(c, A, b, isMax):
     num_constraints = len(b)
     mainRow = []
     entering_leaving_var = []
+    basic_var = []
     for i in range(num_vars):
         mainRow.append("x" + str(i+1))
     for i in range (num_constraints):
         mainRow.append("s" + str(i+1))
+        basic_var.append("s" + str(i+1))
     
     
     tableau = np.zeros((num_constraints + 1, num_vars + num_constraints + 1))
@@ -72,14 +74,14 @@ def simplex_method(c, A, b, isMax):
         if np.sum(col == 1) == 1 and np.sum(col == 0) == num_constraints:
             solution[i] = tableau[np.where(col == 1)[0][0], -1]
     
-    return solution, iterations
+    return solution, iterations,mainRow,basic_var
 
 # Example usage
 c = np.array([5, -4,6,-8])  # Coefficients of the objective function on the form z = 3*x1 + 2*x2 ==> z -3*x1 - 2*x2 =0
 A = np.array([[1,2,2,4], [ 2,-1,1,2],[4,-2,1,-1]])  # Coefficients of the constraints
 b = np.array([40, 8,10])  # Right-hand side of the constraints
 
-solution, iterations = simplex_method(c, A, b , 0)   # 1 for maximization and 0 for minimization
+# solution, iterations,mainRow,basic_var = simplex_method(c, A, b , 0)   # 1 for maximization and 0 for minimization
 
 # print("Optimal solution:", solution)
 
@@ -87,3 +89,6 @@ solution, iterations = simplex_method(c, A, b , 0)   # 1 for maximization and 0 
 #     print(f"Iteration {i+1}:")
 #     print(iteration)
 #     print()
+
+# print(mainRow)
+# print(basic_var)

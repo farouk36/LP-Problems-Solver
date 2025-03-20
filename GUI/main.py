@@ -414,7 +414,7 @@ class LPSolverGUI(QMainWindow):
 
         
 #################################################################################################################################
-        # Update solution tab with dummy data
+
       
         coff_of_objectiveFunction = [] 
         A = []  
@@ -459,8 +459,7 @@ class LPSolverGUI(QMainWindow):
 
             if method == "Standard Simplex":
                 self.check_constraints_type()
-                
-                solution, iterations = simplex_method(coff_of_objectiveFunction, A, b, self.obj_type.currentText()=="Maximize")
+                solution, iterations,main_row,basic_var = simplex_method(coff_of_objectiveFunction, A, b, self.obj_type.currentText()=="Maximize")
             # elif method == "Two-Phase Method":
             #     # solution, iterations = two_phase_method(coff_of_objectiveFunction, A, b, self.obj_type.currentText()=="Maximize")
             # elif method== "BIG-M Method":
@@ -504,9 +503,91 @@ class LPSolverGUI(QMainWindow):
         else:
             self.goal_satisfaction_group.setVisible(False)
 ########################################################################################################################################
-   
 
 
+        iterations_text = self.print_iterations(solution, iterations, main_row,basic_var)
+        self.iterations_text.setHtml(iterations_text)
+
+    def print_iterations(self, solution, iterations, main_row,basic_vars):
+        j=0
+        html = """
+        <html>
+        <body style="color: #ECEFF4; background-color: #2E3440;">
+        """
+
+        tableau_iterations = [it for it in iterations if isinstance(it, np.ndarray)]
+        entering_leaving_var = [it for it in iterations if not isinstance(it, np.ndarray)]
+        j = 0
+
+
+        for i, tableau in enumerate(tableau_iterations):
+
+
+            html += f"""
+            <h3 style="color: #88C0D0;">Iteration {i + 1}</h3>
+            <hr style="border-color: #4C566A;">
+            """
+
+            if i > 0 and i !=len(tableau_iterations) :
+                 entering = entering_leaving_var[j][0]
+                 leaving = entering_leaving_var[j][1]
+                 j=j+1
+                 print(entering)
+                 print(leaving)
+
+                 if leaving in basic_vars:
+                    basic_vars[basic_vars.index(leaving)] = entering
+
+                 html += f"""
+                 <p><b>Entering Variable:</b> {entering}</p>
+                 <p><b>Leaving Variable:</b> {leaving}</p>
+                 """
+
+            html += f"""
+            <p><b>Basic Variables:</b> {', '.join(basic_vars)}</p>
+            <p><b>Tableau:</b></p>
+            <table border="1" cellpadding="5" style="border-collapse: collapse; border-color: #4C566A;">
+                <tr style="background-color: #4C566A;">
+                    <th></th>
+            """
+
+            for var in main_row:
+                html += f"<th>{var}</th>"
+            html += "<th>Solution</th></tr>"
+
+            html += """
+            <tr>
+                <td>Z</td>
+            """
+            for val in tableau[-1]:
+                if val.is_integer():
+                    html += f"<td>{int(val)}</td>"
+                else:
+                    html += f"<td>{val:.4f}</td>"
+            html += "</tr>"
+
+            for k, row in enumerate(tableau[:-1], 1):
+                html += """<tr style="background-color: #3B4252;">"""
+                html += f"<td>{basic_vars[k - 1]}</td>"
+
+                for val in row:
+                    if val.is_integer():
+                        html += f"<td>{int(val)}</td>"
+                    else:
+                        html += f"<td>{val:.4f}</td>"
+                html += "</tr>"
+
+            html += "</table><br>"
+
+            # Add a separator between iterations except for the last one
+            if i < len(tableau_iterations) - 1:
+                html += "<hr style='border-color: #4C566A; margin: 20px 0;'>"
+        html += """
+        </body>
+        </html>
+        """
+
+        return html
     def validate_input(self):
         try:
             for col in range(self.obj_table.columnCount()):
