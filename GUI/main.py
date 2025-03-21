@@ -7,11 +7,11 @@ from styles import get_dark_stylesheet
 
 from Project.Simplex import simplex_method
 from Project.Big_M import big_m_method
-from Project.Two_phase import __excute_simplex
+from Project.Two_phase import __excute_simplex,two_phase_method
+from print_two_phase import print_two_phase_iterations,print_tableau
 
 import numpy as np
-import os
-os.environ["QT_QPA_PLATFORM"] = "wayland"
+
 
 class LPSolverGUI(QMainWindow):
     def __init__(self):
@@ -41,7 +41,7 @@ class LPSolverGUI(QMainWindow):
         self.setup_solution_tab()
         self.setup_iterations_tab()
 
-      
+
 
 
     def setup_problem_tab(self):
@@ -478,8 +478,8 @@ class LPSolverGUI(QMainWindow):
             if method == "Standard Simplex":
                 self.check_constraints_type()
                 solution, iterations,main_row,basic_var = simplex_method(coff_of_objectiveFunction, A, b, self.obj_type.currentText()=="Maximize")
-            # elif method == "Two-Phase Method":
-            #     # solution, iterations,main_row,basic_var = two_phase_method(coff_of_objectiveFunction, A, b,constraint_type, self.obj_type.currentText()=="Maximize")
+            elif method == "Two-Phase Method":
+                solution, iterations,main_row,basic_var = two_phase_method(coff_of_objectiveFunction, A, b,constraint_type, self.obj_type.currentText()=="Maximize")
             elif method== "BIG-M Method":
                solution, iterations,main_row,basic_var = big_m_method(coff_of_objectiveFunction, A, b,constraint_type, self.obj_type.currentText()=="Maximize")
             # else:
@@ -494,7 +494,10 @@ class LPSolverGUI(QMainWindow):
         self.tabs.setCurrentIndex(1)
         self.solution_status.setText(message)
         self.solution_status.setStyleSheet("font-weight: bold; color: #8FBCBB;")
-        self.obj_value.setText(str(iterations[-1][-1][-1]))
+        if(method=="Two-Phase Method"):
+            self.obj_value.setText(str(iterations[1][-1][-1][-1]))
+        else:
+            self.obj_value.setText(str(iterations[-1][-1][-1]))
         self.obj_value.setStyleSheet("font-weight: bold; color: #8FBCBB;")
 
         # Update solution table
@@ -523,9 +526,11 @@ class LPSolverGUI(QMainWindow):
 ########################################################################################################################################
 
 
-        iterations_text = self.print_iterations(solution, iterations, main_row,basic_var,method)
+        if method =="Two-Phase Method":
+            iterations_text = print_two_phase_iterations(solution, iterations, main_row,basic_var)
+        else :
+            iterations_text = self.print_iterations(solution, iterations, main_row, basic_var, method)
         self.iterations_text.setHtml(iterations_text)
-
     def print_iterations(self, solution, iterations, main_row, basic_vars, method):
         html = """
         <html>
@@ -536,47 +541,9 @@ class LPSolverGUI(QMainWindow):
         entering_leaving_var = [it for it in iterations if not isinstance(it, np.ndarray)]
         j = 0
 
+
         if method == "BIG-M Method" and len(tableau_iterations) > 0:
-            first_tableau = tableau_iterations[0]
-
-            html += f"""
-            <h3 style="color: #88C0D0;">Initial BIG-M Tableau</h3>
-            <hr style="border-color: #4C566A;">
-            <p><b>Basic Variables:</b> {', '.join(basic_vars)}</p>
-            <table border="1" cellpadding="5" style="background-color: #3B4252; border-collapse: collapse; border-color: #4C566A;">
-                <tr style="background-color: #4C566A;">
-                    <th></th>
-            """
-
-            for var in main_row:
-                html += f"<th>{var}</th>"
-            html += "<th>Solution</th></tr>"
-
-            html += """
-            <tr>
-                <td>Z</td>
-            """
-            for val in first_tableau[-1]:
-                if val.is_integer():
-                    html += f"<td>{int(val)}</td>"
-                else:
-                    html += f"<td>{val:.4f}</td>"
-            html += "</tr>"
-
-            for k, row in enumerate(first_tableau[:-1], 1):
-                html += """<tr style="background-color: #3B4252;">"""
-                html += f"<td>{basic_vars[k - 1]}</td>"
-
-                for val in row:
-                    if val.is_integer():
-                        html += f"<td>{int(val)}</td>"
-                    else:
-                        html += f"<td>{val:.4f}</td>"
-                html += "</tr>"
-
-            html += "</table><br>"
-            html += "<hr style='border-color: #4C566A; margin: 20px 0;'>"
-
+              html+=print_tableau(tableau_iterations[0],main_row,basic_vars,'Z',"Initial BIG-M Tableau")
         start_idx = 1 if method == "BIG-M Method" else 0
 
         for i, tableau in enumerate(tableau_iterations[start_idx:], start_idx):

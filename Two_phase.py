@@ -242,6 +242,7 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
 # A = np.array([[1,1,1], [ 2,-5,1]])  # Coefficients of the constraints
 # b = np.array([7, 10])  # Right-hand side of the constraints
 # constraints_type = ['=', '>=']  # Constraint types
+# np.set_printoptions(precision=3)
 # isMax = 1  # 0 for minimization, 1 for maximization
 
 # sol, iter, mainRow, basic_var = two_phase_method(c, A, b, constraints_type, isMax)
