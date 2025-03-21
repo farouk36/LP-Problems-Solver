@@ -140,7 +140,7 @@ def __excute_phase2(tablue, artificial_vars, main_row, basic_var, isMax):
     solution = None
 
     iterations, solution, new_basic_vars = __excute_simplex(tablue, basic_var, main_row, artificial_vars, 2, isMax)
-    return iterations, solution
+    return iterations, solution 
 
 
 
@@ -230,15 +230,15 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
 
 
 
-# #Try
+# # #Try
 # c = np.array([1,2,1])  # Coefficients of the objective function on the form z = 3*x1 + 2*x2 ==> z -3*x1 - 2*x2 =0
 # A = np.array([[1,1,1], [ 2,-5,1]])  # Coefficients of the constraints
 # b = np.array([7, 10])  # Right-hand side of the constraints
 # constraints_type = ['=', '>=']  # Constraint types
 # isMax = 1  # 0 for minimization, 1 for maximization
-#
+
 # sol, iter, mainRow, basic_var = two_phase_method(c, A, b, constraints_type, isMax)
-#
+
 # iter_count = 0
 # for i in range(2):
 #     print(f"Phase {i + 1}:")
@@ -247,7 +247,7 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
 #         print(iteration)
 #         print()
 #         iter_count += 1
-#
+
 # print(sol)
 # print(mainRow)
 # print(basic_var)

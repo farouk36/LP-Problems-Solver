@@ -7,7 +7,7 @@ from styles import get_dark_stylesheet
 from Simplex import simplex_method
 import numpy as np
 import os
-os.environ["QT_QPA_PLATFORM"] = "wayland"
+# os.environ["QT_QPA_PLATFORM"] = "wayland"
 
 class LPSolverGUI(QMainWindow):
     def __init__(self):

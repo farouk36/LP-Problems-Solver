@@ -49,7 +49,7 @@ def simplex_method(c, A, b, isMax):
         ratios = []
         for i in range(num_constraints):
             if tableau[i, entering_var] > 0:
-                ratios.append(tableau[i, -1] / tableau[i, entering_var])
+                ratios.append(tableau[i, -1]*1.0 / tableau[i, entering_var])
             else:
                 ratios.append(np.inf)
         
@@ -62,7 +62,7 @@ def simplex_method(c, A, b, isMax):
         
         # Pivot operation
         pivot_element = tableau[leaving_var, entering_var]
-        tableau[leaving_var, :] /= pivot_element
+        tableau[leaving_var, :] /= (pivot_element*1.0)
         
         for i in range(num_constraints + 1):
             if i != leaving_var:
@@ -77,18 +77,18 @@ def simplex_method(c, A, b, isMax):
     return solution, iterations,mainRow,basic_var
 
 # # Example usage
-# c = np.array([5, -4,6,-8])  # Coefficients of the objective function on the form z = 3*x1 + 2*x2 ==> z -3*x1 - 2*x2 =0
-# A = np.array([[1,2,2,4], [ 2,-1,1,2],[4,-2,1,-1]])  # Coefficients of the constraints
-# b = np.array([40, 8,10])  # Right-hand side of the constraints
-#
-# solution, iterations,mainRow,basic_var = simplex_method(c, A, b , 0)   # 1 for maximization and 0 for minimization
-#
-# print("Optimal solution:", solution)
-#
-# for i, iteration in enumerate(iterations):
-#     print(f"Iteration {i+1}:")
-#     print(iteration)
-#     print()
-#
-# print(mainRow)
-# print(basic_var)
+c = np.array([5, -4,6,-8])  # Coefficients of the objective function on the form z = 3*x1 + 2*x2 ==> z -3*x1 - 2*x2 =0
+A = np.array([[1,2,2,4], [ 2,-1,1,2],[4,-2,1,-1]])  # Coefficients of the constraints
+b = np.array([40, 8,10])  # Right-hand side of the constraints
+
+solution, iterations,mainRow,basic_var = simplex_method(c, A, b , 0)   # 1 for maximization and 0 for minimization
+
+print("Optimal solution:", solution)
+
+for i, iteration in enumerate(iterations):
+    print(f"Iteration {i+1}:")
+    print(iteration)
+    print()
+
+print(mainRow)
+print(basic_var)
