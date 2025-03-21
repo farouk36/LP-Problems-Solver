@@ -8,7 +8,6 @@ def make_vars_zeros_Linearly(tablue, main_row, basic_var):
             cofficient_to_make_zero = (-1.0 * (tablue[len(tablue) - 1, i])) / (tablue[index_in_basic, i])
             tablue[len(tablue) - 1] += (cofficient_to_make_zero * tablue[index_in_basic])
 
-    return tablue
 def big_m_method(c, A, b, constraint_types, isMax):
    
     num_vars = len(c)
@@ -84,8 +83,8 @@ def big_m_method(c, A, b, constraint_types, isMax):
             #     elif k ==temp and k!=num_cols-1:
             #         tableau[i, k] = -100 
             #         temp+=1
-    tableau = make_vars_zeros_Linearly(tableau,mainRow ,basic_var)
-    iterations, solution,  basic_var = __excute_simplex(tableau,  basic_var ,mainRow,artificial_vars, 2, isMax)
+    make_vars_zeros_Linearly(tableau,mainRow ,basic_var)
+    iterations, solution,  new_basic_var = __excute_simplex(tableau,  np.copy(basic_var) ,mainRow,artificial_vars, 2, isMax)
     solution = np.array(list(solution.values())[:len(c)])
     print ("################################################################")
     return solution, iterations,mainRow,basic_var
@@ -93,23 +92,23 @@ def big_m_method(c, A, b, constraint_types, isMax):
 
 
 
-# Example usage
-c = np.array([1, 2, 1])  # Objective function coefficients
-A = np.array([[1, 1, 1], [2, -5, 1]])  # Constraint coefficients
-b = np.array([7, 10])  # RHS of constraints
-constraints_type = ['=', '>=']  # Constraint types
-isMax = 1  # 0 for minimization, 1 for maximization
-solution, iterations,mainRow,basic_var=  big_m_method(c, A, b, constraints_type, isMax)
-
-# solution, iterations, mainRow, basic_var = big_m_method(c, A, b, constraints_type, isMax)
-
-print("Optimal solution:", solution)
-
-for i, iteration in enumerate(iterations):
-    if i % 2 == 0:  # Only print tableaus, not entering/leaving vars
-        print(f"Iteration {i//2}:")
-        print(iteration)
-        print()
-
-print("Column headers:", mainRow)
-print("Basic variables:", basic_var)
+# # Example usage
+# c = np.array([1, 2, 1])  # Objective function coefficients
+# A = np.array([[1, 1, 1], [2, -5, 1]])  # Constraint coefficients
+# b = np.array([7, 10])  # RHS of constraints
+# constraints_type = ['=', '>=']  # Constraint types
+# isMax = 1  # 0 for minimization, 1 for maximization
+# solution, iterations,mainRow,basic_var=  big_m_method(c, A, b, constraints_type, isMax)
+#
+# # solution, iterations, mainRow, basic_var = big_m_method(c, A, b, constraints_type, isMax)
+#
+# print("Optimal solution:", solution)
+#
+# for i, iteration in enumerate(iterations):
+#       # Only print tableaus, not entering/leaving vars
+#         print(f"Iteration {i}:")
+#         print(iteration)
+#         print()
+#
+# print("Column headers:", mainRow)
+# print("Basic variables:", basic_var)

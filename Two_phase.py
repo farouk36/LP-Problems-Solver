@@ -1,5 +1,4 @@
 import numpy as np
-
 def two_phase_method(c, A, b, constraint_types, isMax):
     # Initialization
     vars_num = len(c)
@@ -126,8 +125,7 @@ def two_phase_method(c, A, b, constraint_types, isMax):
 def __execute_phase1(phase1_tableau, artificial_vars, main_row, basic_var):
     # Phase 1 make a simplix
     #add row of a's to (r) row
-    for i in range((len(phase1_tableau) - len(artificial_vars)) - 1, len(phase1_tableau) - 1):
-        phase1_tableau[len(phase1_tableau) - 1] += phase1_tableau[i]
+    make_vars_zeros_Linearly(phase1_tableau, main_row, basic_var.tolist())
 
     iterations = []
     solution = None
@@ -142,6 +140,14 @@ def __execute_phase2(tablue, artificial_vars, main_row, basic_var, isMax):
     iterations, solution, new_basic_vars = __excute_simplex(tablue, basic_var, main_row, artificial_vars, 2, isMax)
     return iterations, solution 
 
+
+def make_vars_zeros_Linearly(tablue, main_row, basic_var):
+    index_in_basic = 0
+    for i in range(len(main_row)):
+        if main_row[i] in basic_var:
+            index_in_basic = basic_var.index(main_row[i])
+            cofficient_to_make_zero = (-1.0 * (tablue[len(tablue) - 1, i])) / (tablue[index_in_basic, i])
+            tablue[len(tablue) - 1] += (cofficient_to_make_zero * tablue[index_in_basic])
 
 
 def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax):
@@ -236,9 +242,9 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
 # b = np.array([7, 10])  # Right-hand side of the constraints
 # constraints_type = ['=', '>=']  # Constraint types
 # isMax = 1  # 0 for minimization, 1 for maximization
-
+#
 # sol, iter, mainRow, basic_var = two_phase_method(c, A, b, constraints_type, isMax)
-
+#
 # iter_count = 0
 # for i in range(2):
 #     print(f"Phase {i + 1}:")
@@ -247,7 +253,7 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
 #         print(iteration)
 #         print()
 #         iter_count += 1
-
+#
 # print(sol)
 # print(mainRow)
 # print(basic_var)
