@@ -1,5 +1,5 @@
 import numpy as np
-from Two_phase import __excute_simplex
+from Project.Two_phase import __excute_simplex
 
 def make_vars_zeros_Linearly(tablue, main_row, basic_var):
     index_in_basic = 0
@@ -84,10 +84,14 @@ def big_m_method(c, A, b, constraint_types, isMax):
             #     elif k ==temp and k!=num_cols-1:
             #         tableau[i, k] = -100 
             #         temp+=1
+    new_tableau = tableau.copy()
     make_vars_zeros_Linearly(tableau,mainRow ,basic_var)
     iterations, solution,  new_basic_var = __excute_simplex(tableau,  np.copy(basic_var) ,mainRow,artificial_vars, 2, isMax)
+
+    iterations = [new_tableau] + iterations
     solution = np.array(list(solution.values())[:len(c)])
     print ("################################################################")
+    
     return solution, iterations,mainRow,basic_var
 
 
@@ -99,17 +103,18 @@ def big_m_method(c, A, b, constraint_types, isMax):
 # b = np.array([7, 10])  # RHS of constraints
 # constraints_type = ['=', '>=']  # Constraint types
 # isMax = 1  # 0 for minimization, 1 for maximization
+# np.set_printoptions(precision=3, suppress=True)
 # solution, iterations,mainRow,basic_var=  big_m_method(c, A, b, constraints_type, isMax)
-#
+
 # # solution, iterations, mainRow, basic_var = big_m_method(c, A, b, constraints_type, isMax)
-#
+
 # print("Optimal solution:", solution)
-#
+
 # for i, iteration in enumerate(iterations):
 #       # Only print tableaus, not entering/leaving vars
 #         print(f"Iteration {i}:")
 #         print(iteration)
 #         print()
-#
+
 # print("Column headers:", mainRow)
 # print("Basic variables:", basic_var)

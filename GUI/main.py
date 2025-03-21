@@ -5,9 +5,9 @@ from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QFont, QIcon, QColor
 from styles import get_dark_stylesheet
 
-from Simplex import simplex_method
-from Two_phase import two_phase_method
-from Big_M import big_m_method
+from Project.Simplex import simplex_method
+from Project.Big_M import big_m_method
+from Project.Two_phase import __excute_simplex
 
 import numpy as np
 import os
@@ -424,7 +424,8 @@ class LPSolverGUI(QMainWindow):
       
         coff_of_objectiveFunction = [] 
         A = []  
-        b = []  
+        b = []
+        constraint_type = []
         message="Optimal"
 
         for col in range(self.obj_table.columnCount()):
@@ -438,6 +439,7 @@ class LPSolverGUI(QMainWindow):
           
         for row in range(self.const_table.rowCount()):
             constraint_row = []
+
             
             # Get the coefficients (excluding type and RHS columns)
             for col in range(self.const_table.columnCount() - 2):
@@ -446,7 +448,15 @@ class LPSolverGUI(QMainWindow):
                 numeric_value = float(value)
                 constraint_row.append(numeric_value)
                    
-            A.append(constraint_row)    
+            A.append(constraint_row)
+            t=self.const_table.cellWidget(row, self.const_table.columnCount() - 2).currentText()
+            if t=='≤':
+                constraint_type.append("<=")
+            elif t=='=':
+                constraint_type.append("=")
+            else :
+                constraint_type.append(">=")
+
             rhs_item = self.const_table.item(row, self.const_table.columnCount() - 1)
             rhs_value = rhs_item.text() if rhs_item else "0"
             
@@ -457,6 +467,8 @@ class LPSolverGUI(QMainWindow):
         A = np.array(A)
         b = np.array(b)
         coff_of_objectiveFunction=np.array(coff_of_objectiveFunction)
+        constraint_type =np.array(constraint_type)
+
         
 
 
@@ -467,9 +479,9 @@ class LPSolverGUI(QMainWindow):
                 self.check_constraints_type()
                 solution, iterations,main_row,basic_var = simplex_method(coff_of_objectiveFunction, A, b, self.obj_type.currentText()=="Maximize")
             # elif method == "Two-Phase Method":
-            #     # solution, iterations = two_phase_method(coff_of_objectiveFunction, A, b, self.obj_type.currentText()=="Maximize")
-            # elif method== "BIG-M Method":
-            #     # solution, iterations = big_m_method(coff_of_objectiveFunction, A, b, self.obj_type.currentText()=="Maximize")
+            #     # solution, iterations,main_row,basic_var = two_phase_method(coff_of_objectiveFunction, A, b,constraint_type, self.obj_type.currentText()=="Maximize")
+            elif method== "BIG-M Method":
+               solution, iterations,main_row,basic_var = big_m_method(coff_of_objectiveFunction, A, b,constraint_type, self.obj_type.currentText()=="Maximize")
             # else:
             #     
                
@@ -511,11 +523,10 @@ class LPSolverGUI(QMainWindow):
 ########################################################################################################################################
 
 
-        iterations_text = self.print_iterations(solution, iterations, main_row,basic_var)
+        iterations_text = self.print_iterations(solution, iterations, main_row,basic_var,method)
         self.iterations_text.setHtml(iterations_text)
 
-    def print_iterations(self, solution, iterations, main_row,basic_vars):
-        j=0
+    def print_iterations(self, solution, iterations, main_row, basic_vars, method):
         html = """
         <html>
         <body style="color: #ECEFF4; background-color: #2E3440;">
@@ -525,29 +536,69 @@ class LPSolverGUI(QMainWindow):
         entering_leaving_var = [it for it in iterations if not isinstance(it, np.ndarray)]
         j = 0
 
-
-        for i, tableau in enumerate(tableau_iterations):
-
+        if method == "BIG-M Method" and len(tableau_iterations) > 0:
+            first_tableau = tableau_iterations[0]
 
             html += f"""
-            <h3 style="color: #88C0D0;">Iteration {i + 1}</h3>
+            <h3 style="color: #88C0D0;">Initial BIG-M Tableau</h3>
+            <hr style="border-color: #4C566A;">
+            <p><b>Basic Variables:</b> {', '.join(basic_vars)}</p>
+            <table border="1" cellpadding="5" style="background-color: #3B4252; border-collapse: collapse; border-color: #4C566A;">
+                <tr style="background-color: #4C566A;">
+                    <th></th>
+            """
+
+            for var in main_row:
+                html += f"<th>{var}</th>"
+            html += "<th>Solution</th></tr>"
+
+            html += """
+            <tr>
+                <td>Z</td>
+            """
+            for val in first_tableau[-1]:
+                if val.is_integer():
+                    html += f"<td>{int(val)}</td>"
+                else:
+                    html += f"<td>{val:.4f}</td>"
+            html += "</tr>"
+
+            for k, row in enumerate(first_tableau[:-1], 1):
+                html += """<tr style="background-color: #3B4252;">"""
+                html += f"<td>{basic_vars[k - 1]}</td>"
+
+                for val in row:
+                    if val.is_integer():
+                        html += f"<td>{int(val)}</td>"
+                    else:
+                        html += f"<td>{val:.4f}</td>"
+                html += "</tr>"
+
+            html += "</table><br>"
+            html += "<hr style='border-color: #4C566A; margin: 20px 0;'>"
+
+        start_idx = 1 if method == "BIG-M Method" else 0
+
+        for i, tableau in enumerate(tableau_iterations[start_idx:], start_idx):
+            html += f"""
+            <h3 style="color: #88C0D0;">Iteration {i}</h3>
             <hr style="border-color: #4C566A;">
             """
 
-            if i > 0 and i !=len(tableau_iterations) :
-                 entering = entering_leaving_var[j][0]
-                 leaving = entering_leaving_var[j][1]
-                 j=j+1
-                 print(entering)
-                 print(leaving)
+            if i > start_idx and i !=len(tableau_iterations) :
+                entering = entering_leaving_var[j][0]
+                leaving = entering_leaving_var[j][1]
+                j=j+1
+                print(entering)
+                print(leaving)
 
-                 if leaving in basic_vars:
+                if leaving in basic_vars:
                     basic_vars[basic_vars.index(leaving)] = entering
 
-                 html += f"""
-                 <p><b>Entering Variable:</b> {entering}</p>
-                 <p><b>Leaving Variable:</b> {leaving}</p>
-                 """
+                html += f"""
+                <p><b>Entering Variable:</b> {entering}</p>
+                <p><b>Leaving Variable:</b> {leaving}</p>
+                """
 
             html += f"""
             <p><b>Basic Variables:</b> {', '.join(basic_vars)}</p>
