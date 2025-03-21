@@ -78,7 +78,7 @@ def two_phase_method(c, A, b, constraint_types, isMax):
 
     copied_phase1_tableau = np.copy(phase1_tableau)
     ## excute phase 1
-    iterations, solution, new_basic_vars = __excute_phase1(phase1_tableau, artificial_vars, main_row, np.copy(basic_var))
+    iterations, solution, new_basic_vars = __execute_phase1(phase1_tableau, artificial_vars, main_row, np.copy(basic_var))
 
     if solution is None:
         raise ValueError("The problem is unbounded")
@@ -88,7 +88,7 @@ def two_phase_method(c, A, b, constraint_types, isMax):
     initial_tablue = np.copy(copied_phase1_tableau)
     for i in range(len(phase1_tableau[0])):
         if i < len(c):
-            initial_tablue[-1, i] = c[i]
+            initial_tablue[-1, i] = -c[i]
         else:
             initial_tablue[-1, i] = 0
     iterations.insert(0, initial_tablue)
@@ -108,7 +108,7 @@ def two_phase_method(c, A, b, constraint_types, isMax):
         new_tablue[-1, i] = -c[i]
 
     #excute Phase 2
-    iterations, solution = __excute_phase2(new_tablue, artificial_vars, main_row, new_basic_vars, isMax)
+    iterations, solution = __execute_phase2(new_tablue, artificial_vars, main_row, new_basic_vars, isMax)
 
     if solution is None:
         raise ValueError("The problem is unbounded")
@@ -123,7 +123,7 @@ def two_phase_method(c, A, b, constraint_types, isMax):
     return sol_array, sol_steps, main_row, basic_var
 
 
-def __excute_phase1(phase1_tableau, artificial_vars, main_row, basic_var):
+def __execute_phase1(phase1_tableau, artificial_vars, main_row, basic_var):
     # Phase 1 make a simplix
     #add row of a's to (r) row
     for i in range((len(phase1_tableau) - len(artificial_vars)) - 1, len(phase1_tableau) - 1):
@@ -134,7 +134,7 @@ def __excute_phase1(phase1_tableau, artificial_vars, main_row, basic_var):
     iterations, solution, new_basic_vars = __excute_simplex(phase1_tableau, basic_var, main_row, artificial_vars, 1, 0)
     return iterations, solution, new_basic_vars
 
-def __excute_phase2(tablue, artificial_vars, main_row, basic_var, isMax):
+def __execute_phase2(tablue, artificial_vars, main_row, basic_var, isMax):
     # Phase 2 make a simplix
     iterations = []
     solution = None
