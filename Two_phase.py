@@ -1,4 +1,5 @@
 import numpy as np
+
 def two_phase_method(c, A, b, constraint_types, isMax):
     # Initialization
     vars_num = len(c)

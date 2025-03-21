@@ -1,4 +1,5 @@
 import numpy as np
+
 def simplex_method(c, A, b, isMax):
     # Number of variables and constraints
     num_vars = len(c)

@@ -4,9 +4,11 @@ QSpinBox, QTextEdit, QFileDialog, QMessageBox, QScrollArea,QButtonGroup, QHeader
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QFont, QIcon, QColor
 from styles import get_dark_stylesheet
+
 from Simplex import simplex_method
 from Two_phase import two_phase_method
 from Big_M import big_m_method
+
 import numpy as np
 import os
 os.environ["QT_QPA_PLATFORM"] = "wayland"

@@ -1,5 +1,6 @@
 import numpy as np
 from Two_phase import __excute_simplex
+
 def make_vars_zeros_Linearly(tablue, main_row, basic_var):
     index_in_basic = 0
     for i in range(len(main_row)):
