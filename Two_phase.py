@@ -19,7 +19,7 @@ def two_phase_method(c, A, b, constraint_types, isMax,variable_types):
     for i in range(vars_num):
         if i in unrestricted_indices:
             main_row.append("x" + str(i + 1))
-            main_row.append("-x" + str(i + 1))
+            main_row.append("x" + str(i + 1) + "-")
         else:
             main_row.append("x" + str(i + 1))
 
@@ -79,7 +79,7 @@ def two_phase_method(c, A, b, constraint_types, isMax,variable_types):
                 if main_row[i] == basic_var[j]:
                     phase1_tableau[j, i] = 1
 
-        if i < (vars_num + len(unrestricted_indices)) and ("-"+main_row[i]) != main_row[i + 1]:
+        if i < (vars_num + len(unrestricted_indices)) and (main_row[i]) + "-" != main_row[i + 1]:
             index_of_main_vars += 1
 
 
@@ -115,7 +115,6 @@ def two_phase_method(c, A, b, constraint_types, isMax,variable_types):
 
     #update the sol in new_table
     for i in range(len(new_tablue) - 1):
-        print(new_tablue[i][len(new_tablue[0]) - 1])
         new_tablue[i][len(new_tablue[0]) - 1] = solution.get(new_basic_vars[i], 0)
 
     ################    Initialize tableau for phase 2  ########################
@@ -143,9 +142,9 @@ def two_phase_method(c, A, b, constraint_types, isMax,variable_types):
 
     #delete all unrestricted and all without objective function in the solution
     for i in range(len(solution)):
-        if "-x" + str(i + 1) in solution:
-            solution["x" + str(i + 1)] = solution["x" + str(i + 1)] - solution["-x" + str(i + 1)]
-            del solution["-x" + str(i + 1)]
+        if "x" + str(i + 1) + "-" in solution:
+            solution["x" + str(i + 1)] = solution["x" + str(i + 1)] - solution["x" + str(i + 1) + "-"]
+            del solution["x" + str(i + 1) + "-"]
 
     #make the sol array
     sol_array = np.array(list(solution.values())[:len(c)])
@@ -168,7 +167,6 @@ def update_sol(solution, new_basic_vars, unrestricted_indices):
 
 
 def __execute_phase1(phase1_tableau, artificial_vars, main_row, basic_var):
-    # Phase 1 make a simplix
     #add row of a's to (r) row
     make_vars_zeros_Linearly(phase1_tableau, main_row, basic_var)
 
@@ -243,9 +241,7 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
                 iterations.append(entering_leaving_var)
 
         # Update the basic variable
-
         basic_var[leaving_var] = str(main_row[entering_var])
-
 
         # Pivot operation
         pivot_element = tableau[leaving_var, entering_var]
@@ -271,8 +267,6 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
     for var in main_row:
         solution[var] = 0
 
-    # print(basic_var)
-
     for i, var in enumerate(basic_var):
         solution[var] = tableau[i, -1]
 
@@ -284,28 +278,29 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
 
 
 
-# # Define the problem
-# c = np.array([-1,-1])  # Coefficients of the objective function
-# A = np.array([[1,1], [1,-1]])  # Coefficients of the constraints
-# b = np.array([4,1])  # Right-hand side of the constraints
-# constraint_types = ['<=', '=']  # Constraint types
-# variables_types =np.array(["Unrestricted","Non-negative"])  # Variable types
-# isMax = 0  # 1 for maximization
-#
-# # Solve using the two-phase method
-# sol_array, sol_steps, main_row, basic_var = two_phase_method(c, A, b, constraint_types, isMax, variables_types)
-#
-# # Print the solution
-# print("Optimal solution:", sol_array)
-# print("Column headers:", main_row)
-# print("Basic variables:", basic_var)
-# print()
-# iter_count = 0
-# # Print the solution steps
-# for i in range(len(sol_steps)):
-#     print("Phase", i + 1)
-#     for j in range(len(sol_steps[i])):
-#         print("iteration", iter_count, ":\n", sol_steps[i][j])
-#         iter_count += 1
-#         print()
-#     print()
+# Define the problem
+c = np.array([-1,-5])  # Objective function coefficients
+A = np.array([[1,10], [1,-1]])  # Constraint coefficients
+b = np.array([4,1])  # RHS of constraints
+constraints_type = ['<=', '>=']  # Constraint types
+isMax = 0  # 0 for minimization, 1 for maximization
+variables_types =np.array(["Unrestricted","Non-negative"])
+np.set_printoptions(precision=3, suppress=True)
+
+# Solve using the two-phase method
+sol_array, sol_steps, main_row, basic_var = two_phase_method(c, A, b, constraints_type, isMax, variables_types)
+
+# Print the solution
+print("Optimal solution:", sol_array)
+print("Column headers:", main_row)
+print("Basic variables:", basic_var)
+print()
+iter_count = 0
+# Print the solution steps
+for i in range(len(sol_steps)):
+    print("Phase", i + 1)
+    for j in range(len(sol_steps[i])):
+        print("iteration", iter_count, ":\n", sol_steps[i][j])
+        iter_count += 1
+        print()
+    print()

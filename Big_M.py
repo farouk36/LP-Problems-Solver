@@ -144,9 +144,9 @@ def big_m_method(c, A, b, constraint_types, isMax,variable_types):
 
 # # Example usage
 # c = np.array([-1,-5])  # Objective function coefficients
-# A = np.array([[1,1], [1,-1]])  # Constraint coefficients
+# A = np.array([[1,10], [1,-1]])  # Constraint coefficients
 # b = np.array([4,1])  # RHS of constraints
-# constraints_type = ['<=', '=']  # Constraint types
+# constraints_type = ['<=', '>=']  # Constraint types
 # isMax = 0  # 0 for minimization, 1 for maximization
 # variables_types =np.array(["Unrestricted","Non-negative"])
 # np.set_printoptions(precision=3, suppress=True)
