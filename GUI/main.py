@@ -5,9 +5,9 @@ from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QFont, QIcon, QColor
 from styles import get_dark_stylesheet
 
-from Project.Simplex import simplex_method
-from Project.Big_M import big_m_method
-from Project.Two_phase import __excute_simplex,two_phase_method
+from Simplex import simplex_method
+from Big_M import big_m_method
+from Two_phase import __excute_simplex,two_phase_method
 from print_two_phase import print_two_phase_iterations,print_tableau
 
 import numpy as np
@@ -426,6 +426,7 @@ class LPSolverGUI(QMainWindow):
         A = []  
         b = []
         constraint_type = []
+        variables_type = []
         message="Optimal"
 
         for col in range(self.obj_table.columnCount()):
@@ -463,29 +464,26 @@ class LPSolverGUI(QMainWindow):
             numeric_rhs = float(rhs_value)
             b.append(numeric_rhs)
 
+
+            variables_type.append(self.var_types_table.cellWidget(0, row).currentText())
+
        
         A = np.array(A)
         b = np.array(b)
         coff_of_objectiveFunction=np.array(coff_of_objectiveFunction)
         constraint_type =np.array(constraint_type)
-
-        
-
+        variables_type =np.array(variables_type)
 
         try:
-    
-
             if method == "Standard Simplex":
                 self.check_constraints_type()
                 solution, iterations,main_row,basic_var = simplex_method(coff_of_objectiveFunction, A, b, self.obj_type.currentText()=="Maximize")
             elif method == "Two-Phase Method":
                 solution, iterations,main_row,basic_var = two_phase_method(coff_of_objectiveFunction, A, b,constraint_type, self.obj_type.currentText()=="Maximize")
             elif method== "BIG-M Method":
-               solution, iterations,main_row,basic_var = big_m_method(coff_of_objectiveFunction, A, b,constraint_type, self.obj_type.currentText()=="Maximize")
+               solution, iterations,main_row,basic_var = big_m_method(coff_of_objectiveFunction, A, b,constraint_type, self.obj_type.currentText()=="Maximize",variables_type)
             # else:
-            #     
-               
-
+            #
         except Exception as e:
             QMessageBox.warning(self, "Error", str(e))
             return

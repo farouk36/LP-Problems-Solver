@@ -1,6 +1,5 @@
 import numpy as np
-from Project.Two_phase import __excute_simplex
-
+from Two_phase import __excute_simplex
 def make_vars_zeros_Linearly(tablue, main_row, basic_var):
     index_in_basic = 0
     for i in range(len(main_row)):
@@ -9,20 +8,58 @@ def make_vars_zeros_Linearly(tablue, main_row, basic_var):
             cofficient_to_make_zero = (-1.0 * (tablue[len(tablue) - 1, i])) / (tablue[index_in_basic, i])
             tablue[len(tablue) - 1] += (cofficient_to_make_zero * tablue[index_in_basic])
 
-def big_m_method(c, A, b, constraint_types, isMax):
-   
+
+def big_m_method(c, A, b, constraint_types, isMax,variable_types):
+
+    num_vars_original = len(c)
+    # Handle unrestricted variables by splitting them into positive and negative parts
+    unrestricted_indices = [i for i, v_type in enumerate(variable_types) if v_type == "Unrestricted"]
+    print(unrestricted_indices)
+
+    if unrestricted_indices:
+        new_c = []
+        for i in range(num_vars_original):
+            if i in unrestricted_indices:
+                new_c.append(c[i])
+                new_c.append(-c[i])
+            else:
+                new_c.append(c[i])
+        c = np.array(new_c)
+
+        # Expand constraint matrix
+        new_A = np.zeros((A.shape[0], A.shape[1] + len(unrestricted_indices)))
+        col_idx = 0
+        for i in range(num_vars_original):
+            if i in unrestricted_indices:
+                new_A[:, col_idx] = A[:, i]
+                new_A[:, col_idx + 1] = -A[:, i]
+                col_idx += 2
+            else:
+                new_A[:, col_idx] = A[:, i]
+                col_idx += 1
+        A = new_A
+
     num_vars = len(c)
     num_constraints = len(b)
     j = 1
     num_slack=0
-    
-  
     mainRow = []
     basic_var = []
-    for i in range(num_vars):
-        mainRow.append("x" + str(i + 1))
-   
-   
+
+    # Add original decision variable labels
+    if unrestricted_indices:
+        var_idx = 1
+        for i in range(num_vars_original):
+            if i in unrestricted_indices:
+                mainRow.append("x" + str(var_idx)+"+")
+                mainRow.append("x" + str(var_idx)+"-")
+            else:
+                mainRow.append("x" + str(var_idx))
+            var_idx += 1
+    else:
+        for i in range(num_vars):
+            mainRow.append("x" + str(i+1))
+
     artificial_vars = []
     for i, constraint_type in enumerate(constraint_types):
         if constraint_type == ">=":
@@ -41,31 +78,23 @@ def big_m_method(c, A, b, constraint_types, isMax):
         mainRow.extend(artificial_vars)
         # basic_var.extend(artificial_vars)
 
-   
     num_cols = len(mainRow) + 1
     tableau = np.zeros((len(basic_var) + 1, num_cols))
     start_artificial = num_vars + num_slack
-    temp=start_artificial
+    temp = start_artificial
     start_slack = num_vars
-
-    # print(start_slack)
-    # print(start_artificial)
 
     tableau[:-1, -1] = b
     tableau[:-1, :num_vars] = A
     tableau[-1, :num_vars] = -c
     tableau[-1, temp:-1] = (-100 if (isMax==0) else 100)
+
     for i in range(len(basic_var)):
         flag=0
-        # if(i!=len(basic_var)):tableau[i, -1] = b[i]
         for k in range(num_vars,num_cols, 1):
-
             if(tableau[i, k] == 1 or  flag):
                 break
             elif i < num_constraints:  
-                # if k < num_vars:  
-                #     tableau[i, k] = A[i, k]
-                # if k >= num_vars:
                 if constraint_types[i] == ">=":
                     tableau[i, start_slack] = -1
                     tableau[i, start_artificial] = 1
@@ -78,35 +107,50 @@ def big_m_method(c, A, b, constraint_types, isMax):
                     tableau[i, start_slack] = 1
                     start_slack += 1
                 flag=1
-            # else:  
-            #     if k < num_vars:  
-            #         tableau[i, k] = -c[k]
-            #     elif k ==temp and k!=num_cols-1:
-            #         tableau[i, k] = -100 
-            #         temp+=1
+
     new_tableau = tableau.copy()
     make_vars_zeros_Linearly(tableau,mainRow ,basic_var)
-    iterations, solution,  new_basic_var = __excute_simplex(tableau,  np.copy(basic_var) ,mainRow,artificial_vars, 2, isMax)
+    iterations, solution,  new_basic_var = __excute_simplex(tableau, basic_var.copy() ,mainRow,artificial_vars, 2, isMax)
 
     iterations = [new_tableau] + iterations
-    solution = np.array(list(solution.values())[:len(c)])
-    print ("################################################################")
-    
-    return solution, iterations,mainRow,basic_var
 
+    # Handle unrestricted variables in solution
+    if unrestricted_indices:
+        original_solution = {}
+        sol_values = list(solution.values())
+        print(solution)
+        print(sol_values)
+        var_idx = 0
 
+        for i in range(num_vars_original):
+            if i in unrestricted_indices:
+                x_plus = sol_values[var_idx] if var_idx < len(sol_values) else 0
+                x_minus = sol_values[var_idx + 1] if var_idx + 1 < len(sol_values) else 0
+                original_solution["x" + str(i+1)] = x_plus - x_minus
+                var_idx += 2
+            else:
+                original_solution["x" + str(i+1)] = sol_values[var_idx] if var_idx < len(sol_values) else 0
+                var_idx += 1
+
+        # Convert back to original variable space
+        solution_array = np.array([original_solution.get("x" + str(i+1), 0) for i in range(num_vars_original)])
+    else:
+        solution_array = np.array(list(solution.values())[:num_vars])
+
+    print("################################################################")
+
+    return solution_array, iterations, mainRow, basic_var
 
 
 # # Example usage
-# c = np.array([1, 2, 1])  # Objective function coefficients
-# A = np.array([[1, 1, 1], [2, -5, 1]])  # Constraint coefficients
-# b = np.array([7, 10])  # RHS of constraints
-# constraints_type = ['=', '>=']  # Constraint types
+# c = np.array([30,-4])  # Objective function coefficients
+# A = np.array([[5,-1], [1,0]])  # Constraint coefficients
+# b = np.array([30,5])  # RHS of constraints
+# constraints_type = ['<=', '<=']  # Constraint types
 # isMax = 1  # 0 for minimization, 1 for maximization
+# variables_types =np.array(["Non-negative","Unrestricted"])
 # np.set_printoptions(precision=3, suppress=True)
-# solution, iterations,mainRow,basic_var=  big_m_method(c, A, b, constraints_type, isMax)
-
-# # solution, iterations, mainRow, basic_var = big_m_method(c, A, b, constraints_type, isMax)
+# solution, iterations,mainRow,basic_var=  big_m_method(c, A, b, constraints_type, isMax,variables_types)
 
 # print("Optimal solution:", solution)
 

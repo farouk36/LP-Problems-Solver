@@ -199,7 +199,9 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
                 iterations.append(entering_leaving_var)
 
         # Update the basic variable
-        basic_var[leaving_var] = main_row[entering_var]
+
+        basic_var[leaving_var] = str(main_row[entering_var])
+
 
         # Pivot operation
         pivot_element = tableau[leaving_var, entering_var]
@@ -224,6 +226,9 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
     solution = {}
     for var in main_row:
         solution[var] = 0
+
+    print(solution)
+    # print(basic_var)
 
     for i, var in enumerate(basic_var):
         solution[var] = tableau[i, -1]
