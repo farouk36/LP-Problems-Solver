@@ -5,12 +5,15 @@ from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QFont, QIcon, QColor
 from styles import get_dark_stylesheet
 
+# from Simplex import simplex_method
 from Simplex import simplex_method
 from Big_M import big_m_method
 from Two_phase import __excute_simplex,two_phase_method
+
 from print_two_phase import print_two_phase_iterations,print_tableau
 
 import numpy as np
+
 
 
 class LPSolverGUI(QMainWindow):
@@ -479,7 +482,7 @@ class LPSolverGUI(QMainWindow):
                 self.check_constraints_type()
                 solution, iterations,main_row,basic_var = simplex_method(coff_of_objectiveFunction, A, b, self.obj_type.currentText()=="Maximize")
             elif method == "Two-Phase Method":
-                solution, iterations,main_row,basic_var = two_phase_method(coff_of_objectiveFunction, A, b,constraint_type, self.obj_type.currentText()=="Maximize")
+                solution, iterations,main_row,basic_var = two_phase_method(coff_of_objectiveFunction, A, b,constraint_type, self.obj_type.currentText()=="Maximize",variables_type)
             elif method== "BIG-M Method":
                solution, iterations,main_row,basic_var = big_m_method(coff_of_objectiveFunction, A, b,constraint_type, self.obj_type.currentText()=="Maximize",variables_type)
             # else:
