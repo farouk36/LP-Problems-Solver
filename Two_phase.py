@@ -18,7 +18,7 @@ def two_phase_method(c, A, b, constraint_types, isMax,variable_types):
     # Initialize main row
     for i in range(vars_num):
         if i in unrestricted_indices:
-            main_row.append("x" + str(i + 1))
+            main_row.append("x" + str(i + 1) + "+") #here we add x and x-
             main_row.append("x" + str(i + 1) + "-")
         else:
             main_row.append("x" + str(i + 1))
@@ -61,7 +61,7 @@ def two_phase_method(c, A, b, constraint_types, isMax,variable_types):
         for j in range(len(basic_var)):
             #handle main vars
             if i < (vars_num + len(unrestricted_indices)):
-                if main_row[i] == "x" + str(index_of_main_vars):
+                if main_row[i] == ("x" + str(index_of_main_vars)) or main_row[i] == ("x" + str(index_of_main_vars) + "+"):
                     phase1_tableau[j, i] = A[j, index_of_main_vars - 1]
                 else:
                     phase1_tableau[j, i] = -A[j, index_of_main_vars - 1]
@@ -79,7 +79,9 @@ def two_phase_method(c, A, b, constraint_types, isMax,variable_types):
                 if main_row[i] == basic_var[j]:
                     phase1_tableau[j, i] = 1
 
-        if i < (vars_num + len(unrestricted_indices)) and (main_row[i]) + "-" != main_row[i + 1]:
+        #var for check
+        var_for_check = main_row[i][:-1]
+        if i < (vars_num + len(unrestricted_indices)) and (var_for_check + "-") != main_row[i + 1]:
             index_of_main_vars += 1
 
 
@@ -143,7 +145,7 @@ def two_phase_method(c, A, b, constraint_types, isMax,variable_types):
     #delete all unrestricted and all without objective function in the solution
     for i in range(len(solution)):
         if "x" + str(i + 1) + "-" in solution:
-            solution["x" + str(i + 1)] = solution["x" + str(i + 1)] - solution["x" + str(i + 1) + "-"]
+            solution["x" + str(i + 1) + "+"] = solution["x" + str(i + 1) + "+"] - solution["x" + str(i + 1) + "-"]
             del solution["x" + str(i + 1) + "-"]
 
     #make the sol array
@@ -156,10 +158,10 @@ def two_phase_method(c, A, b, constraint_types, isMax,variable_types):
 def update_sol(solution, new_basic_vars, unrestricted_indices):
     # Combine unrestricted variables (x = x+ - x-)
     for i in unrestricted_indices:
-        x_plus = solution.get("x" + str(i + 1), 0)
+        x_plus = solution.get("x" + str(i + 1) + "+", 0)
         x_minus = solution.get("x" + str(i + 1) + "-", 0)
-        if "x" + str(i + 1) in new_basic_vars:
-            solution["x" + str(i + 1)] = x_plus - x_minus
+        if "x" + str(i + 1) + "+" in new_basic_vars:
+            solution["x" + str(i + 1) + "+"] = x_plus - x_minus
         else:
             solution["x" + str(i + 1) + "-"] = x_minus - x_plus
 
@@ -279,12 +281,12 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
 
 
 # # Define the problem
-# c = np.array([-1,-5])  # Objective function coefficients
-# A = np.array([[1,10], [1,-1]])  # Constraint coefficients
-# b = np.array([4,1])  # RHS of constraints
-# constraints_type = ['<=', '>=']  # Constraint types
+# c = np.array([-1,-5,-1])  # Objective function coefficients
+# A = np.array([[1,1,1], [1,-10,1], [-2,1,1]])  # Constraint coefficients
+# b = np.array([4,1,2])  # RHS of constraints
+# constraints_type = ['<=', '=', '>=']  # Constraint types
 # isMax = 0  # 0 for minimization, 1 for maximization
-# variables_types =np.array(["Unrestricted","Non-negative"])
+# variables_types =np.array(["Unrestricted","Non-negative","Non-negative"])
 # np.set_printoptions(precision=3, suppress=True)
 #
 # # Solve using the two-phase method
