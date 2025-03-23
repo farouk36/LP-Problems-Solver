@@ -57,7 +57,12 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
 
         leaving_var = np.argmin(ratios)
         entering_leaving_var.append(str(basic_var[leaving_var]))
-
+        if (isDone[savedIndex-len(basic_var)]==False):
+            isDone[savedIndex-len(basic_var)]=True
+            if entering_leaving_var[0] != entering_leaving_var[1]:
+                iterations.append(entering_leaving_var)
+        else:
+            break
         # Update the basic variable
         basic_var[leaving_var] = str(main_row[entering_var])
 
@@ -69,12 +74,6 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
             if i != leaving_var:
                 tableau[i, :] -= tableau[i, entering_var] * tableau[leaving_var, :]
         priorites[savedIndex-len(basic_var)] = 0
-        if (isDone[savedIndex-len(basic_var)]==False):
-            isDone[savedIndex-len(basic_var)]=True
-            if entering_leaving_var[0] != entering_leaving_var[1]:
-                iterations.append(entering_leaving_var)
-        else:
-            break
 
     # Check if phase 1 was successful (all artificial variables = 0)
     if phase == 1 and artificial_vars:
@@ -86,7 +85,12 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
         for i, var in enumerate(basic_var):
             if var in artificial_vars and abs(tableau[i, -1]) > 1e-10:
                 raise ValueError("Problem has no feasible solution. Artificial variable remains in basis.")
-
+    for i in range (len(basic_var), len(tableau)):
+        if (all(tableau[i , :-1]<=0)):
+            isDone[i-len(basic_var)] = True
+            
+        else : 
+            isDone[i-len(basic_var)] = False
     # Extract solution
     solution = {}
     for var in main_row:
@@ -98,7 +102,7 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
     # Add objective value
     solution['objective_value'] = tableau[-1, -1]
 
-    return iterations, solution, basic_var
+    return iterations, solution, basic_var , isDone
 def make_vars_zeros_Linearly(tablue, main_row, basic_var):
     index_in_basic = 0
     for i in range(len(main_row)):
@@ -233,7 +237,8 @@ def goal_method( num_vars_original , A, RHS_A, G, RHS_G, constraint_types, Goal_
 
     new_tableau = tableau.copy()
     make_vars_zeros_Linearly(tableau,mainRow ,basic_var)
-    iterations, solution,  new_basic_var = __excute_simplex(tableau, basic_var.copy() ,mainRow,artificial_vars, 2,0, priorities)
+    isDone = []
+    iterations, solution,  new_basic_var , isDone  = __excute_simplex(tableau, basic_var.copy() ,mainRow,artificial_vars, 2,0, priorities)
 
     iterations = [new_tableau] + iterations
 
@@ -262,7 +267,7 @@ def goal_method( num_vars_original , A, RHS_A, G, RHS_G, constraint_types, Goal_
 
     print("################################################################")
 
-    return solution, iterations, mainRow, basic_var
+    return solution, iterations, mainRow, basic_var , isDone
 
 
 # # Example usage
@@ -277,8 +282,13 @@ priorites = [1,2,1]
 # # isMax = 0  # 0 for minimization, 1 for maximization
 variables_types =np.array(["Non-negative","Non-negative"])
 # np.set_printoptions(precision=3, suppress=True)
-solution, iterations,mainRow,basic_var=  goal_method(2 ,A,RHS_A,G,RHS_G, constraints_type, goals_type,variables_types, priorites)
-
+solution, iterations,mainRow,basic_var , isDone=  goal_method(2 ,A,RHS_A,G,RHS_G, constraints_type, goals_type,variables_types, priorites)
+for i in range( len(isDone)):
+    if isDone[i] == True:
+        print("Goal", i + 1, "is done")
+    else:
+        print("Goal", i + 1, "is not done")
+    
 print("Optimal solution:", solution)
 
 for i, iteration in enumerate(iterations):
