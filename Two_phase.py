@@ -278,29 +278,29 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
 
 
 
-# Define the problem
-c = np.array([-1,-5])  # Objective function coefficients
-A = np.array([[1,10], [1,-1]])  # Constraint coefficients
-b = np.array([4,1])  # RHS of constraints
-constraints_type = ['<=', '>=']  # Constraint types
-isMax = 0  # 0 for minimization, 1 for maximization
-variables_types =np.array(["Unrestricted","Non-negative"])
-np.set_printoptions(precision=3, suppress=True)
-
-# Solve using the two-phase method
-sol_array, sol_steps, main_row, basic_var = two_phase_method(c, A, b, constraints_type, isMax, variables_types)
-
-# Print the solution
-print("Optimal solution:", sol_array)
-print("Column headers:", main_row)
-print("Basic variables:", basic_var)
-print()
-iter_count = 0
-# Print the solution steps
-for i in range(len(sol_steps)):
-    print("Phase", i + 1)
-    for j in range(len(sol_steps[i])):
-        print("iteration", iter_count, ":\n", sol_steps[i][j])
-        iter_count += 1
-        print()
-    print()
+# # Define the problem
+# c = np.array([-1,-5])  # Objective function coefficients
+# A = np.array([[1,10], [1,-1]])  # Constraint coefficients
+# b = np.array([4,1])  # RHS of constraints
+# constraints_type = ['<=', '>=']  # Constraint types
+# isMax = 0  # 0 for minimization, 1 for maximization
+# variables_types =np.array(["Unrestricted","Non-negative"])
+# np.set_printoptions(precision=3, suppress=True)
+#
+# # Solve using the two-phase method
+# sol_array, sol_steps, main_row, basic_var = two_phase_method(c, A, b, constraints_type, isMax, variables_types)
+#
+# # Print the solution
+# print("Optimal solution:", sol_array)
+# print("Column headers:", main_row)
+# print("Basic variables:", basic_var)
+# print()
+# iter_count = 0
+# # Print the solution steps
+# for i in range(len(sol_steps)):
+#     print("Phase", i + 1)
+#     for j in range(len(sol_steps[i])):
+#         print("iteration", iter_count, ":\n", sol_steps[i][j])
+#         iter_count += 1
+#         print()
+#     print()
