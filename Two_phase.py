@@ -157,11 +157,11 @@ def update_sol(solution, new_basic_vars, unrestricted_indices):
     # Combine unrestricted variables (x = x+ - x-)
     for i in unrestricted_indices:
         x_plus = solution.get("x" + str(i + 1), 0)
-        x_minus = solution.get("-x" + str(i + 1), 0)
+        x_minus = solution.get("x" + str(i + 1) + "-", 0)
         if "x" + str(i + 1) in new_basic_vars:
             solution["x" + str(i + 1)] = x_plus - x_minus
         else:
-            solution["-x" + str(i + 1)] = x_minus - x_plus
+            solution["x" + str(i + 1) + "-"] = x_minus - x_plus
 
     return solution
 
