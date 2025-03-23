@@ -9,7 +9,6 @@ from styles import get_dark_stylesheet
 from Simplex import simplex_method
 from Big_M import big_m_method
 from Two_phase import __excute_simplex,two_phase_method
-
 from print_two_phase import print_two_phase_iterations,print_tableau
 
 import numpy as np
@@ -467,10 +466,9 @@ class LPSolverGUI(QMainWindow):
             numeric_rhs = float(rhs_value)
             b.append(numeric_rhs)
 
+        for col in range(self.obj_table.columnCount()):
+            variables_type.append(self.var_types_table.cellWidget(0, col).currentText())
 
-            variables_type.append(self.var_types_table.cellWidget(0, row).currentText())
-
-       
         A = np.array(A)
         b = np.array(b)
         coff_of_objectiveFunction=np.array(coff_of_objectiveFunction)

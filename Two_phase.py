@@ -157,11 +157,11 @@ def update_sol(solution, new_basic_vars, unrestricted_indices):
     # Combine unrestricted variables (x = x+ - x-)
     for i in unrestricted_indices:
         x_plus = solution.get("x" + str(i + 1), 0)
-        x_minus = solution.get("-x" + str(i + 1), 0)
+        x_minus = solution.get("x" + str(i + 1) + "-", 0)
         if "x" + str(i + 1) in new_basic_vars:
             solution["x" + str(i + 1)] = x_plus - x_minus
         else:
-            solution["-x" + str(i + 1)] = x_minus - x_plus
+            solution["x" + str(i + 1) + "-"] = x_minus - x_plus
 
     return solution
 
@@ -286,10 +286,10 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
 # isMax = 0  # 0 for minimization, 1 for maximization
 # variables_types =np.array(["Unrestricted","Non-negative"])
 # np.set_printoptions(precision=3, suppress=True)
-
+#
 # # Solve using the two-phase method
 # sol_array, sol_steps, main_row, basic_var = two_phase_method(c, A, b, constraints_type, isMax, variables_types)
-
+#
 # # Print the solution
 # print("Optimal solution:", sol_array)
 # print("Column headers:", main_row)
