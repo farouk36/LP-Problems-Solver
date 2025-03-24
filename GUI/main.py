@@ -550,24 +550,24 @@ class LPSolverGUI(QMainWindow):
                 goal_types = np.array(goal_types)
                 priorities = np.array(priorities)
 
-                print(len(coff_of_objectiveFunction))
-                print(A)
-                print(b)
-                print(goals)
-                print(rhs_goals)
-                print(constraint_type)
-                print(goal_types)
-                print(variables_type)
-                print(priorities)
-                print(num_goals)
-
-                solution, iterations, main_row, basic_var,is_done = goal_method(len(coff_of_objectiveFunction),A,b,goals,rhs_goals,constraint_type,goal_types,variables_type,priorities)
-                for i, iteration in enumerate(iterations):
-                    # Only print tableaus, not entering/leaving vars
-                    print(f"Iteration {i}:")
-                    print(iteration)
-                    print()
-                print(solution)
+                # print(len(coff_of_objectiveFunction))
+                # print(A)
+                # print(b)
+                # print(goals)
+                # print(rhs_goals)
+                # print(constraint_type)
+                # print(goal_types)
+                # print(variables_type)
+                # print(priorities)
+                # print(num_goals)
+                #
+                # solution, iterations, main_row, basic_var,is_done = goal_method(len(coff_of_objectiveFunction),A,b,goals,rhs_goals,constraint_type,goal_types,variables_type,priorities)
+                # for i, iteration in enumerate(iterations):
+                #     # Only print tableaus, not entering/leaving vars
+                #     print(f"Iteration {i}:")
+                #     print(iteration)
+                #     print()
+                # print(solution)
         except Exception as e:
             QMessageBox.warning(self, "Error", str(e))
             return
@@ -588,7 +588,7 @@ class LPSolverGUI(QMainWindow):
 
         for i in range(num_vars):
             self.solution_table.setItem(i, 0, QTableWidgetItem(f"x{i + 1}"))
-            # self.solution_table.setItem(i, 1, QTableWidgetItem(f"{solution[i]}"))
+            self.solution_table.setItem(i, 1, QTableWidgetItem(f"{solution[i]}"))
 
 
         # If goal programming, show goal satisfaction
@@ -596,7 +596,7 @@ class LPSolverGUI(QMainWindow):
             self.goal_satisfaction_group.setVisible(True)
             num_goals = self.goal_count.value()
             self.goal_satisfaction_table.setRowCount(num_goals)
-            print(is_done)
+            # print(is_done)
 
             for i in range(num_goals):
                 self.goal_satisfaction_table.setItem(i, 0, QTableWidgetItem(f"Goal {i + 1}"))

@@ -73,7 +73,7 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
         for i in range(len(tableau)):
             if i != leaving_var:
                 tableau[i, :] -= tableau[i, entering_var] * tableau[leaving_var, :]
-        priorites[savedIndex-len(basic_var)] = 0
+        priorities[savedIndex-len(basic_var)] = 0
 
     # Check if phase 1 was successful (all artificial variables = 0)
     if phase == 1 and artificial_vars:
@@ -265,37 +265,36 @@ def goal_method( num_vars_original , A, RHS_A, G, RHS_G, constraint_types, Goal_
     # else:
     #     solution_array = np.array(list(solution.values())[:num_vars])
 
-    print("################################################################")
+    sol_array = np.array(list(solution.values())[:num_vars_original])
+    return sol_array, iterations, mainRow, basic_var , isDone
 
-    return solution, iterations, mainRow, basic_var , isDone
 
-
-# # Example usage
-# # c = np.array([-1,-5])  # Objective function coefficients
-A = np.array([[15,30]])  # Constraint coefficients
-G = np.array([[200,0],[100,400] , [0,250]]) # Goals coefficients
-RHS_A = np.array([150])  # RHS of constraints
-RHS_G = np.array([1000,1200,800]) # RHS of goals
-constraints_type = ['<=']  # Constraint types
-goals_type = ['>=','>=','>='] # Goals types
-priorites = [1,2,1]
-# # isMax = 0  # 0 for minimization, 1 for maximization
-variables_types =np.array(["Non-negative","Non-negative"])
+# Example usage
+# # # c = np.array([-1,-5])  # Objective function coefficients
+# A = np.array([[15,30]])  # Constraint coefficients
+# G = np.array([[200,0],[100,400] , [0,250]]) # Goals coefficients
+# RHS_A = np.array([150])  # RHS of constraints
+# RHS_G = np.array([1000,1200,800]) # RHS of goals
+# constraints_type = ['<=']  # Constraint types
+# goals_type = ['>=','>=','>='] # Goals types
+# priorites = [1,2,1]
+# # # isMax = 0  # 0 for minimization, 1 for maximization
+# variables_types =np.array(["Non-negative","Non-negative"])
 # np.set_printoptions(precision=3, suppress=True)
-solution, iterations,mainRow,basic_var , isDone=  goal_method(2 ,A,RHS_A,G,RHS_G, constraints_type, goals_type,variables_types, priorites)
-for i in range( len(isDone)):
-    if isDone[i] == True:
-        print("Goal", i + 1, "is done")
-    else:
-        print("Goal", i + 1, "is not done")
-    
-print("Optimal solution:", solution)
-
-for i, iteration in enumerate(iterations):
-      # Only print tableaus, not entering/leaving vars
-        print(f"Iteration {i}:")
-        print(iteration)
-        print()
-
-print("Column headers:", mainRow)
-print("Basic variables:", basic_var)
+# solution, iterations,mainRow,basic_var , isDone=  goal_method(2 ,A,RHS_A,G,RHS_G, constraints_type, goals_type,variables_types, priorites)
+# for i in range( len(isDone)):
+#     if isDone[i] == True:
+#         print("Goal", i + 1, "is done")
+#     else:
+#         print("Goal", i + 1, "is not done")
+#
+# print("Optimal solution:", solution)
+#
+# for i, iteration in enumerate(iterations):
+#       # Only print tableaus, not entering/leaving vars
+#         print(f"Iteration {i}:")
+#         print(iteration)
+#         print()
+#
+# print("Column headers:", mainRow)
+# print("Basic variables:", basic_var)
