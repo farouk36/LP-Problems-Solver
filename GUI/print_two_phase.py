@@ -2,7 +2,7 @@ import numpy as np
 from sympy.physics.units import second
 
 
-def print_tableau( tableau, main_row, basic_vars, letter,message=None):
+def print_tableau(tableau, main_row, basic_vars, letter, message=None, goals=0):
     html = """
     <div style="color: #ECEFF4; background-color: #2E3440; padding: 10px;">
     """
@@ -24,18 +24,30 @@ def print_tableau( tableau, main_row, basic_vars, letter,message=None):
         html += f"<th>{var}</th>"
     html += "<th>Solution</th></tr>"
 
-    html += f"""
-    <tr>
-        <td>{letter}</td>
-    """
-    for val in tableau[-1]:
-        if val.is_integer():
-            html += f"<td>{int(val)}</td>"
-        else:
-            html += f"<td>{val:.4f}</td>"
-    html += "</tr>"
+    if goals == 0:
+        # Original single objective function case
+        html += f"""
+        <tr>
+            <td>{letter}</td>
+        """
+        for val in tableau[-1]:
+            if val.is_integer():
+                html += f"<td>{int(val)}</td>"
+            else:
+                html += f"<td>{val:.4f}</td>"
+        html += "</tr>"
+    else:
+        # Multiple goal objectives case
+        for z_idx, z_row in enumerate(tableau[-goals:], 1):
+            html += f"<tr><td>{letter}{z_idx}</td>"
+            for val in z_row:
+                if val.is_integer():
+                    html += f"<td>{int(val)}</td>"
+                else:
+                    html += f"<td>{val:.4f}</td>"
+            html += "</tr>\n"
 
-    for k, row in enumerate(tableau[:-1], 1):
+    for k, row in enumerate(tableau[:-1] if goals == 0 else tableau[:-goals], 1):
         html += """<tr style="background-color: #3B4252;">"""
         html += f"<td>{basic_vars[k - 1]}</td>"
 
@@ -51,7 +63,6 @@ def print_tableau( tableau, main_row, basic_vars, letter,message=None):
     </div>
     """
     # Add a separator between iterations except for the last one
-
     html += "<hr style='border-color: #4C566A; margin: 20px 0;'>"
 
     return html
@@ -75,7 +86,19 @@ def print_two_phase_iterations(solution, iterations, main_row, basic_vars):
         """
         return html
 
-def print_table(phase,basic_vars,main_row,start=1,is_first=0):
+
+def print_goal_programing(solution,iterations,main_row,basic_vars,goals):
+    html = """"""
+    html +=print_tableau(iterations[0],main_row,basic_vars,'Z',"goal programming",goals)
+    html+=print_table(iterations,basic_vars,main_row,1,1,goals)
+    html += """
+    </body>
+    </html>
+    """
+    return html
+
+
+def print_table(phase, basic_vars, main_row, start=1, is_first=0, goal=0):
      html = """"""
      tableau_iterations = [it for it in phase if isinstance(it, np.ndarray)]
      entering_leaving_var = [it for it in phase if not isinstance(it, np.ndarray)]
@@ -112,31 +135,36 @@ def print_table(phase,basic_vars,main_row,start=1,is_first=0):
              html += f"<th>{var}</th>"
          html += "<th>Solution</th></tr>"
 
-         html += """
-                <tr>
-                    <td>r</td>
-                """
-         for val in tableau[-1]:
-             if val.is_integer():
-                 html += f"<td>{int(val)}</td>"
-             else:
-                 html += f"<td>{val:.4f}</td>"
-         html += "</tr>"
+         if goal == 0:
+            html += "<tr><td>Z</td>"
+            for val in tableau[-1]:
+                if val.is_integer():
+                    html += f"<td>{int(val)}</td>"
+                else:
+                    html += f"<td>{val:.4f}</td>"
+            html += "</tr>\n"
+         else:
+            for z_idx, z_row in enumerate(tableau[-goal:], 1):
+                html += f"<tr><td>Z{z_idx}</td>"
+                for val in z_row:
+                    if val.is_integer():
+                        html += f"<td>{int(val)}</td>"
+                    else:
+                        html += f"<td>{val:.4f}</td>"
+                html += "</tr>\n"
 
-         for k, row in enumerate(tableau[:-1], 1):
-             html += """<tr style="background-color: #3B4252;">"""
-             html += f"<td>{basic_vars[k - 1]}</td>"
-
-             for val in row:
-                 if val.is_integer():
-                     html += f"<td>{int(val)}</td>"
-                 else:
-                     html += f"<td>{val:.4f}</td>"
-             html += "</tr>"
+         for k, row in enumerate(tableau[:-1] if goal == 0 else tableau[:-goal], 1):
+            html += f"<tr><td>{basic_vars[k - 1]}</td>"
+            for val in row:
+                if val.is_integer():
+                    html += f"<td>{int(val)}</td>"
+                else:
+                    html += f"<td>{val:.4f}</td>"
+            html += "</tr>"
 
          html += "</table><br>"
 
-         # Add a separator between iterations except for the last one
+        # Add a separator between iterations except for the last one
          if i < len(tableau_iterations) - 1:
              html += "<hr style='border-color: #4C566A; margin: 20px 0;'>"
 

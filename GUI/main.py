@@ -9,7 +9,8 @@ from styles import get_dark_stylesheet
 from Simplex import simplex_method
 from Big_M import big_m_method
 from Two_phase import __excute_simplex,two_phase_method
-from print_two_phase import print_two_phase_iterations,print_tableau
+from print_two_phase import print_two_phase_iterations,print_tableau,print_goal_programing
+from Goal_Programming import goal_method
 
 import numpy as np
 
@@ -179,7 +180,7 @@ class LPSolverGUI(QMainWindow):
         goal_header.addWidget(QLabel("Number of Goals:"))
         self.goal_count = QSpinBox()
         self.goal_count.setMinimum(1)
-        self.goal_count.setMaximum(10)
+        self.goal_count.setMaximum(100)
         self.goal_count.setValue(1)
         goal_header.addWidget(self.goal_count)
 
@@ -188,10 +189,13 @@ class LPSolverGUI(QMainWindow):
         goal_header.addWidget(self.update_goals_button)
         goal_layout.addLayout(goal_header)
 
-        self.goal_table = QTableWidget(1, 3)  # Initially 1 goal
-        self.goal_table.setHorizontalHeaderLabels(["Goal", "Priority", "Target Value"])
-        self.goal_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        goal_layout.addWidget(self.goal_table)
+        # Goal constraints table with priority
+        goal_const_label = QLabel("Goals:")
+        goal_layout.addWidget(goal_const_label)
+
+        self.goal_const_table = QTableWidget(1, 0)  # Initially 1 goal, columns updated dynamically
+        self.goal_const_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        goal_layout.addWidget(self.goal_const_table)
 
         self.goal_group.setLayout(goal_layout)
         self.goal_group.setVisible(False)
@@ -199,13 +203,13 @@ class LPSolverGUI(QMainWindow):
 
         # Connect signals
         self.goal_radio.toggled.connect(lambda checked: self.goal_group.setVisible(checked))
+        self.goal_radio.toggled.connect(lambda checked: self.update_goal_tables() if checked else None)
 
         # Solve button
         self.solve_button = QPushButton("Solve Problem")
         self.solve_button.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 10px;")
         self.solve_button.clicked.connect(self.solve_problem)
         layout.addWidget(self.solve_button)
-
 
     def setup_solution_tab(self):
         layout = QVBoxLayout(self.solution_tab)
@@ -247,8 +251,8 @@ class LPSolverGUI(QMainWindow):
         self.goal_satisfaction_group = QGroupBox("Goal Satisfaction")
         goal_satisfaction_layout = QVBoxLayout()
 
-        self.goal_satisfaction_table = QTableWidget(0, 3)
-        self.goal_satisfaction_table.setHorizontalHeaderLabels(["Goal", "Target", "Achieved"])
+        self.goal_satisfaction_table = QTableWidget(0, 2)
+        self.goal_satisfaction_table.setHorizontalHeaderLabels(["Goal","Satisfaction"])
         self.goal_satisfaction_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         goal_satisfaction_layout.addWidget(self.goal_satisfaction_table)
 
@@ -370,32 +374,53 @@ class LPSolverGUI(QMainWindow):
         headers = [f"x{i + 1}" for i in range(num_vars)] + ["Type", "RHS"]
         self.const_table.setHorizontalHeaderLabels(headers)
 
-
     def update_goal_tables(self):
         num_goals = self.goal_count.value()
-        self.goal_table.setRowCount(num_goals)
+        num_vars = self.var_count.value()
 
-        # Add priority combo boxes
+        # Update goal constraint table - now includes priority column
+        self.goal_const_table.setRowCount(num_goals)
+        self.goal_const_table.setColumnCount(num_vars + 3)  # Variables + priority + type + RHS
+
+        # Set constraint headers
+        goal_const_headers = [f"x{i + 1}" for i in range(num_vars)] + ["Priority", "Type", "RHS"]
+        self.goal_const_table.setHorizontalHeaderLabels(goal_const_headers)
+
+        # Add row numbers for goals
+        row_labels = [f"Goal {i + 1}" for i in range(num_goals)]
+        self.goal_const_table.setVerticalHeaderLabels(row_labels)
+
+        # Set up each goal constraint row
         for i in range(num_goals):
-            # Goal name
-            if not self.goal_table.item(i, 0):
-                self.goal_table.setItem(i, 0, QTableWidgetItem(f"Goal {i + 1}"))
+            # Goal constraint coefficients
+            for j in range(num_vars):
+                if not self.goal_const_table.item(i, j):
+                    self.goal_const_table.setItem(i, j, QTableWidgetItem("0"))
 
-            # Priority combo
-            combo = QComboBox()
-            priorities = [f"Priority {j + 1}" for j in range(num_goals)]
-            combo.addItems(priorities)
-            combo.setCurrentIndex(i)  # Default to matching priority
-            self.goal_table.setCellWidget(i, 1, combo)
+            # Priority spinner
+            priority_col = num_vars
+            priority_spin = QSpinBox()
+            priority_spin.setMinimum(1)
+            priority_spin.setMaximum(num_goals)
+            priority_spin.setValue(i + 1)  # Default to matching priority
+            self.goal_const_table.setCellWidget(i, priority_col, priority_spin)
 
-            # Target value (initially empty)
-            if not self.goal_table.item(i, 2):
-                self.goal_table.setItem(i, 2, QTableWidgetItem("0"))
+            # Goal constraint type
+            type_col = num_vars + 1
+            constraint_type_combo = QComboBox()
+            constraint_type_combo.addItems(["≤", "=", "≥"])
+            constraint_type_combo.setCurrentIndex(1)  # Default to "="
+            self.goal_const_table.setCellWidget(i, type_col, constraint_type_combo)
+
+            # Goal constraint RHS (target value)
+            rhs_col = num_vars + 2
+            if not self.goal_const_table.item(i, rhs_col):
+                self.goal_const_table.setItem(i, rhs_col, QTableWidgetItem("0"))
 
         # Apply alternating row colors for better readability
-        for row in range(self.goal_table.rowCount()):
-            for col in range(self.goal_table.columnCount()):
-                item = self.goal_table.item(row, col)
+        for row in range(self.goal_const_table.rowCount()):
+            for col in range(self.goal_const_table.columnCount()):
+                item = self.goal_const_table.item(row, col)
                 if item:
                     if row % 2 == 0:
                         item.setBackground(QColor("#3B4252"))
@@ -483,8 +508,66 @@ class LPSolverGUI(QMainWindow):
                 solution, iterations,main_row,basic_var = two_phase_method(coff_of_objectiveFunction, A, b,constraint_type, self.obj_type.currentText()=="Maximize",variables_type)
             elif method== "BIG-M Method":
                solution, iterations,main_row,basic_var = big_m_method(coff_of_objectiveFunction, A, b,constraint_type, self.obj_type.currentText()=="Maximize",variables_type)
-            # else:
-            #
+            else:
+                num_vars = self.var_count.value()
+                num_goals = self.goal_count.value()
+
+                goals = []
+                rhs_goals = []
+                goal_types = []
+                priorities = []
+
+
+                for row in range(self.goal_const_table.rowCount()):
+                    goal_coeffs = []
+                    for col in range(num_vars):
+                        item = self.goal_const_table.item(row, col)
+                        value = float(item.text() if item and item.text() else "0")
+                        goal_coeffs.append(value)
+
+                    goals.append(goal_coeffs)
+
+                    priority_widget = self.goal_const_table.cellWidget(row, num_vars)
+                    priority = priority_widget.value() if priority_widget else (row + 1)
+                    priorities.append(priority)
+
+                    type_widget = self.goal_const_table.cellWidget(row, num_vars + 1)
+                    constraint_type_text = type_widget.currentText() if type_widget else "="
+
+                    if constraint_type_text == "≤":
+                        goal_types.append("<=")
+                    elif constraint_type_text == "≥":
+                        goal_types.append(">=")
+                    else:
+                        goal_types.append("=")
+
+                    rhs_item = self.goal_const_table.item(row, num_vars + 2)
+                    rhs_value = float(rhs_item.text() if rhs_item and rhs_item.text() else "0")
+                    rhs_goals.append(rhs_value)
+
+                goals = np.array(goals)
+                rhs_goals = np.array(rhs_goals)
+                goal_types = np.array(goal_types)
+                priorities = np.array(priorities)
+
+                print(len(coff_of_objectiveFunction))
+                print(A)
+                print(b)
+                print(goals)
+                print(rhs_goals)
+                print(constraint_type)
+                print(goal_types)
+                print(variables_type)
+                print(priorities)
+                print(num_goals)
+
+                solution, iterations, main_row, basic_var,is_done = goal_method(len(coff_of_objectiveFunction),A,b,goals,rhs_goals,constraint_type,goal_types,variables_type,priorities)
+                for i, iteration in enumerate(iterations):
+                    # Only print tableaus, not entering/leaving vars
+                    print(f"Iteration {i}:")
+                    print(iteration)
+                    print()
+                print(solution)
         except Exception as e:
             QMessageBox.warning(self, "Error", str(e))
             return
@@ -505,7 +588,7 @@ class LPSolverGUI(QMainWindow):
 
         for i in range(num_vars):
             self.solution_table.setItem(i, 0, QTableWidgetItem(f"x{i + 1}"))
-            self.solution_table.setItem(i, 1, QTableWidgetItem(f"{solution[i]}"))
+            # self.solution_table.setItem(i, 1, QTableWidgetItem(f"{solution[i]}"))
 
 
         # If goal programming, show goal satisfaction
@@ -513,13 +596,11 @@ class LPSolverGUI(QMainWindow):
             self.goal_satisfaction_group.setVisible(True)
             num_goals = self.goal_count.value()
             self.goal_satisfaction_table.setRowCount(num_goals)
+            print(is_done)
 
             for i in range(num_goals):
                 self.goal_satisfaction_table.setItem(i, 0, QTableWidgetItem(f"Goal {i + 1}"))
-                self.goal_satisfaction_table.setItem(i, 1, QTableWidgetItem("100"))
-                self.goal_satisfaction_table.setItem(i, 2, QTableWidgetItem("95"))
-
-
+                self.goal_satisfaction_table.setItem(i, 1, QTableWidgetItem(f"{is_done[i]}"))
         else:
             self.goal_satisfaction_group.setVisible(False)
 ########################################################################################################################################
@@ -527,6 +608,8 @@ class LPSolverGUI(QMainWindow):
 
         if method =="Two-Phase Method":
             iterations_text = print_two_phase_iterations(solution, iterations, main_row,basic_var)
+        elif method == "Goal Programming":
+            iterations_text = print_goal_programing(solution,iterations,main_row,basic_var,num_goals)
         else :
             iterations_text = self.print_iterations(solution, iterations, main_row, basic_var, method)
         self.iterations_text.setHtml(iterations_text)
