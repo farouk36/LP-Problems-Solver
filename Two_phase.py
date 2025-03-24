@@ -98,11 +98,10 @@ def two_phase_method(c, A, b, constraint_types, isMax,variable_types):
     if solution is None:
         raise ValueError("The problem is unbounded")
 
-    #update the sol in new_table
-    update_sol(solution, new_basic_vars, unrestricted_indices)
+    #add steps if there are artifical variables (changed in phase 1)
+    if artificial_vars:
+        iterations.insert(0, copied_phase1_tableau)
 
-    #add steps
-    iterations.insert(0, copied_phase1_tableau)
     initial_tablue = np.copy(copied_phase1_tableau)
     for i in range(len(phase1_tableau[0])):
         if i < len(c):
@@ -113,11 +112,7 @@ def two_phase_method(c, A, b, constraint_types, isMax,variable_types):
     #add steps
     sol_steps.append(iterations)
 
-    new_tablue = iterations[len(iterations) - 1]
-
-    #update the sol in new_table
-    for i in range(len(new_tablue) - 1):
-        new_tablue[i][len(new_tablue[0]) - 1] = solution.get(new_basic_vars[i], 0)
+    new_tablue = np.copy(iterations[len(iterations) - 1])
 
     ################    Initialize tableau for phase 2  ########################
     #delete artifical variables cols from phase 1 tableau
@@ -131,7 +126,7 @@ def two_phase_method(c, A, b, constraint_types, isMax,variable_types):
         new_tablue[-1, i + num_of_passes] = -c[i]
         if i in unrestricted_indices:
             num_of_passes += 1
-            new_tablue[-1, i + 1] = c[i]
+            new_tablue[-1, i + num_of_passes] = c[i]
 
     #excute Phase 2
     iterations, solution = __execute_phase2(new_tablue, artificial_vars, main_row, new_basic_vars, isMax)
@@ -163,10 +158,9 @@ def update_sol(solution, new_basic_vars, unrestricted_indices):
         if "x" + str(i + 1) + "+" in new_basic_vars:
             solution["x" + str(i + 1) + "+"] = x_plus - x_minus
         else:
-            solution["x" + str(i + 1) + "-"] = x_minus - x_plus
+            solution["x" + str(i + 1) + "-"] = x_plus - x_minus
 
     return solution
-
 
 def __execute_phase1(phase1_tableau, artificial_vars, main_row, basic_var):
     #add row of a's to (r) row
@@ -185,7 +179,6 @@ def __execute_phase2(tablue, artificial_vars, main_row, basic_var, isMax):
     iterations, solution, new_basic_vars = __excute_simplex(tablue, basic_var, main_row, artificial_vars, 2, isMax)
     return iterations, solution 
 
-
 def make_vars_zeros_Linearly(tablue, main_row, basic_var):
     index_in_basic = 0
     for i in range(len(main_row)):
@@ -193,7 +186,6 @@ def make_vars_zeros_Linearly(tablue, main_row, basic_var):
             index_in_basic = basic_var.index(main_row[i])
             cofficient_to_make_zero = (-1.0 * (tablue[len(tablue) - 1, i])) / (tablue[index_in_basic, i])
             tablue[len(tablue) - 1] += (cofficient_to_make_zero * tablue[index_in_basic])
-
 
 def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax):
     iterations = []
@@ -227,7 +219,7 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
         ratios = []
         for i in range(len(tableau) - 1):  # Exclude the objective row
             if tableau[i, entering_var] > 0:
-                ratios.append(tableau[i, -1] / tableau[i, entering_var])
+                ratios.append(tableau[i, -1]*1.0 / tableau[i, entering_var])
             else:
                 ratios.append(np.inf)
 
@@ -254,10 +246,10 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
                 tableau[i, :] -= tableau[i, entering_var] * tableau[leaving_var, :]
 
     # Check if phase 1 was successful (all artificial variables = 0)
-    if phase == 1 and artificial_vars:
+    if artificial_vars:
         # Check if the objective value is non-zero
-        if abs(tableau[-1, -1]) > 1e-10:
-            raise ValueError("Problem has no feasible solution. Phase 1 could not eliminate artificial variables.")
+        if phase == 1 and abs(tableau[-1, -1]) > 1e-10:
+            raise ValueError("Problem has no feasible solution. could not eliminate artificial variables.")
 
         # Check if any artificial variables are basic with non-zero values
         for i, var in enumerate(basic_var):
@@ -281,12 +273,12 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
 
 
 # # Define the problem
-# c = np.array([-1,-5,-1])  # Objective function coefficients
-# A = np.array([[1,1,1], [1,-10,1], [-2,1,1]])  # Constraint coefficients
-# b = np.array([4,1,2])  # RHS of constraints
-# constraints_type = ['<=', '=', '>=']  # Constraint types
-# isMax = 0  # 0 for minimization, 1 for maximization
-# variables_types =np.array(["Unrestricted","Non-negative","Non-negative"])
+# c = np.array([10,12,15,8,11])  # Objective function coefficients
+# A = np.array([[2,3,4,1,5], [5,2,1,3,2], [1,4,2,3,1], [3,1,3,2,4]])  # Constraint coefficients
+# b = np.array([50,60,40,55])  # RHS of constraints
+# constraints_type = ['<=', '<=', '<=', '<=']  # Constraint types
+# isMax = 1  # 0 for minimization, 1 for maximization
+# variables_types =np.array(["Non-negative","Non-negative","Non-negative","Non-negative"])
 # np.set_printoptions(precision=3, suppress=True)
 #
 # # Solve using the two-phase method

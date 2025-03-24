@@ -75,11 +75,11 @@ def print_two_phase_iterations(solution, iterations, main_row, basic_vars):
 
         html+=print_tableau(first_phase[0],main_row,basic_vars,'Z',"Initial Tableau With Z")
         html += print_tableau(first_phase[1], main_row, basic_vars, 'r', "Start by Minimize r ")
-        html+=print_table(first_phase,basic_vars, main_row,start_index_first_phase,1)
+        html+=print_table(first_phase,basic_vars, main_row,1,start_index_first_phase,1)
 
         new_main_row=[item for item in main_row if not (isinstance(item, str) and item.startswith('a'))]
         html += print_tableau(second_phase[0], new_main_row, basic_vars, 'Z', "Replace r with Z")
-        html+=print_table(second_phase,basic_vars, new_main_row)
+        html+=print_table(second_phase,basic_vars, new_main_row,2)
         html += """
         </body>
         </html>
@@ -90,7 +90,7 @@ def print_two_phase_iterations(solution, iterations, main_row, basic_vars):
 def print_goal_programing(solution,iterations,main_row,basic_vars,goals):
     html = """"""
     html +=print_tableau(iterations[0],main_row,basic_vars,'Z',"goal programming",goals)
-    html+=print_table(iterations,basic_vars,main_row,1,1,goals)
+    html+=print_table(iterations,basic_vars,main_row,0,1,1,goals)
     html += """
     </body>
     </html>
@@ -98,7 +98,7 @@ def print_goal_programing(solution,iterations,main_row,basic_vars,goals):
     return html
 
 
-def print_table(phase, basic_vars, main_row, start=1, is_first=0, goal=0):
+def print_table(phase, basic_vars, main_row,which_phase=0, start=1, is_first=0, goal=0):
      html = """"""
      tableau_iterations = [it for it in phase if isinstance(it, np.ndarray)]
      entering_leaving_var = [it for it in phase if not isinstance(it, np.ndarray)]
@@ -136,7 +136,7 @@ def print_table(phase, basic_vars, main_row, start=1, is_first=0, goal=0):
          html += "<th>Solution</th></tr>"
 
          if goal == 0:
-            html += "<tr><td>Z</td>"
+            html += (which_phase == 1) * f"<tr><td>r</td>" or (which_phase == 2) * f"<tr><td>Z</td>"
             for val in tableau[-1]:
                 if val.is_integer():
                     html += f"<td>{int(val)}</td>"
