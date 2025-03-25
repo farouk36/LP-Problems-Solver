@@ -327,38 +327,38 @@ def goal_method( num_vars_original , A, RHS_A, G, RHS_G, constraint_types, Goal_
 # # Example usage
 # # c = np.array([-1,-5])  # Objective function coefficients
 # # Example with URS variable
-A = np.array([[15, 30]])  # Constraint coefficients (15x1 + 30x2 <= 150)
-G = np.array([[200, 0], [100, 400], [0, 250]])  # Goals coefficients
-RHS_A = np.array([150])  # RHS of constraints
-RHS_G = np.array([1000, 1200, 800])  # RHS of goals
-constraints_type = ['<=']  # Constraint types
-goals_type = ['>=', '>=', '>=']  # Goals types
-priorities = [1, 2, 1]  # Priorities for goals
-variables_types = ["Non-negative", "Non-negative"]  # x1 is non-negative, x2 is URS
-np.set_printoptions(precision=3, suppress=True)
-
-solution, iterations, mainRow, basic_var, isDone = goal_method(
-    2, A, RHS_A, G, RHS_G, constraints_type, goals_type, variables_types, priorities
-)
-
-# Print results
-for i in range(len(isDone)):
-    if isDone[i]:
-        print(f"Goal {i+1} is achieved")
-    else:
-        print(f"Goal {i+1} is not achieved")
-
-print("\nOptimal solution:", solution)
-print("\nBasic variables:", basic_var)
-print("\nMain row variables:", mainRow)
-
-# Print iterations
-for i, iteration in enumerate(iterations):
-    if isinstance(iteration, list):  # Skip entering/leaving var info
-        continue
-    print(f"\nIteration {i}:")
-    print(iteration)
-
-print("Column headers:", mainRow)
-print("Basic variables:", basic_var)
-print("Solution", solution)
+# A = np.array([[15, 30]])  # Constraint coefficients (15x1 + 30x2 <= 150)
+# G = np.array([[200, 0], [100, 400], [0, 250]])  # Goals coefficients
+# RHS_A = np.array([150])  # RHS of constraints
+# RHS_G = np.array([1000, 1200, 800])  # RHS of goals
+# constraints_type = ['<=']  # Constraint types
+# goals_type = ['>=', '>=', '>=']  # Goals types
+# priorities = [1, 2, 1]  # Priorities for goals
+# variables_types = ["Non-negative", "Non-negative"]  # x1 is non-negative, x2 is URS
+# np.set_printoptions(precision=3, suppress=True)
+#
+# solution, iterations, mainRow, basic_var, isDone = goal_method(
+#     2, A, RHS_A, G, RHS_G, constraints_type, goals_type, variables_types, priorities
+# )
+#
+# # Print results
+# for i in range(len(isDone)):
+#     if isDone[i]:
+#         print(f"Goal {i+1} is achieved")
+#     else:
+#         print(f"Goal {i+1} is not achieved")
+#
+# print("\nOptimal solution:", solution)
+# print("\nBasic variables:", basic_var)
+# print("\nMain row variables:", mainRow)
+#
+# # Print iterations
+# for i, iteration in enumerate(iterations):
+#     if isinstance(iteration, list):  # Skip entering/leaving var info
+#         continue
+#     print(f"\nIteration {i}:")
+#     print(iteration)
+#
+# print("Column headers:", mainRow)
+# print("Basic variables:", basic_var)
+# print("Solution", solution)
