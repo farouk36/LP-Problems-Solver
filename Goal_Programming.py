@@ -1,6 +1,4 @@
 import numpy as np
-# from PyQt6.QtNetwork.QHttpHeaders import insert
-
 
 def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax  , priorities):
     iterations = []
@@ -125,30 +123,6 @@ def goal_method( num_vars_original , A, RHS_A, G, RHS_G, constraint_types, Goal_
 
     # Handle unrestricted variables by splitting them into positive and negative parts
     unrestricted_indices = [i for i, v_type in enumerate(variable_types) if v_type == "Unrestricted"]
-    # print(unrestricted_indices)
-
-    # if unrestricted_indices:
-    #     new_c = []
-    #     for i in range(num_vars_original):
-    #         if i in unrestricted_indices:
-    #             new_c.append(c[i])
-    #             new_c.append(-c[i])
-    #         else:
-    #             new_c.append(c[i])
-    #     c = np.array(new_c)
-
-    #     # Expand constraint matrix
-    #     new_A = np.zeros((A.shape[0], A.shape[1] + len(unrestricted_indices)))
-    #     col_idx = 0
-    #     for i in range(num_vars_original):
-    #         if i in unrestricted_indices:
-    #             new_A[:, col_idx] = A[:, i]
-    #             new_A[:, col_idx + 1] = -A[:, i]
-    #             col_idx += 2
-    #         else:
-    #             new_A[:, col_idx] = A[:, i]
-    #             col_idx += 1
-    #     A = new_A
 
     num_vars = num_vars_original
     num_constraints = len(RHS_A)
@@ -167,19 +141,6 @@ def goal_method( num_vars_original , A, RHS_A, G, RHS_G, constraint_types, Goal_
             mainRow.append("x" + str(i + 1))
 
 
-    # Add original decision variable labels
-    # if unrestricted_indices:
-    #     var_idx = 1
-    #     for i in range(num_vars_original):
-    #         if i in unrestricted_indices:
-    #             mainRow.append("x" + str(var_idx)+"+")
-    #             mainRow.append("x" + str(var_idx)+"-")
-    #         else:
-    #             mainRow.append("x" + str(var_idx))
-    #         var_idx += 1
-    # else:
-    #     for i in range(num_vars):
-    #         mainRow.append("x" + str(i+1))
 
     deviation_vars = []
     Zs = []
@@ -190,7 +151,6 @@ def goal_method( num_vars_original , A, RHS_A, G, RHS_G, constraint_types, Goal_
         basic_var.append(deviation_vars[i*2])
 
     mainRow.extend(deviation_vars)
-    print(mainRow)
 
     artificial_vars = []
     for i, constraint_type in enumerate(constraint_types):
@@ -208,7 +168,6 @@ def goal_method( num_vars_original , A, RHS_A, G, RHS_G, constraint_types, Goal_
 
     if len(artificial_vars) > 0:
         mainRow.extend(artificial_vars)
-        # basic_var.extend(artificial_vars)
 
     num_cols = len(mainRow) + 1
     tableau = np.zeros((len(basic_var) + len(Zs), num_cols))
@@ -239,12 +198,6 @@ def goal_method( num_vars_original , A, RHS_A, G, RHS_G, constraint_types, Goal_
                 else:
                     tableau[i, j] = A[i - len(G)][j - num_of_urs_gone]
 
-    # tableau[len(RHS_G):-len(Zs) , :num_vars] = A
-    # tableau[:len(RHS_G) , :num_vars] = G
-
-    # number_of_urs = 0
-    # for i in range(tableau[0]):
-    #     if mainRow[i] :
     i=0
     for j in range (len(RHS_G)):
         if (Goal_types[j] == ">="):
@@ -261,11 +214,12 @@ def goal_method( num_vars_original , A, RHS_A, G, RHS_G, constraint_types, Goal_
         tableau[i, j+1] = -1
         j= j+2
 
-    for i in range(len(RHS_G), len(RHS_G)+len(RHS_A), 1):
 
+    print (mainRow)
+
+    for i in range(len(RHS_G), len(RHS_G)+len(RHS_A), 1):
         j=0
-        for k in range(num_vars+len(RHS_G)*2, num_cols-1, 1):
-            if j < num_constraints:
+        if j < num_constraints:
                 if constraint_types[j] == ">=":
                     tableau[i, start_slack + len(unrestricted_indices)] = -1
                     tableau[i, start_artificial+ len(unrestricted_indices)] = 1
@@ -289,31 +243,6 @@ def goal_method( num_vars_original , A, RHS_A, G, RHS_G, constraint_types, Goal_
 
     iterations = [new_tableau] + iterations
 
-    # Handle unrestricted variables in solution
-    # if unrestricted_indices:
-    #     original_solution = {}
-    #     sol_values = list(solution.values())
-    #     print(solution)
-    #     print(sol_values)
-    #     var_idx = 0
-
-    #     for i in range(num_vars_original):
-    #         if i in unrestricted_indices:
-    #             x_plus = sol_values[var_idx] if var_idx < len(sol_values) else 0
-    #             x_minus = sol_values[var_idx + 1] if var_idx + 1 < len(sol_values) else 0
-    #             original_solution["x" + str(i+1)] = x_plus - x_minus
-    #             var_idx += 2
-    #         else:
-    #             original_solution["x" + str(i+1)] = sol_values[var_idx] if var_idx < len(sol_values) else 0
-    #             var_idx += 1
-
-    #     # Convert back to original variable space
-    #     solution_array = np.array([original_solution.get("x" + str(i+1), 0) for i in range(num_vars_original)])
-    # else:
-    #     solution_array = np.array(list(solution.values())[:num_vars])
-    # delete all unrestricted and all without objective function in the solution
-
-    #handle delete all unrestricted
     for i in range(len(solution)):
         if "x" + str(i + 1) + "-" in solution:
             solution["x" + str(i + 1) + "+"] = solution["x" + str(i + 1) + "+"] - solution["x" + str(i + 1) + "-"]
@@ -324,41 +253,40 @@ def goal_method( num_vars_original , A, RHS_A, G, RHS_G, constraint_types, Goal_
     return sol_array, iterations, mainRow, basic_var , isDone
 
 
-# # Example usage
-# # c = np.array([-1,-5])  # Objective function coefficients
-# # Example with URS variable
-# A = np.array([[15, 30]])  # Constraint coefficients (15x1 + 30x2 <= 150)
-# G = np.array([[200, 0], [100, 400], [0, 250]])  # Goals coefficients
-# RHS_A = np.array([150])  # RHS of constraints
-# RHS_G = np.array([1000, 1200, 800])  # RHS of goals
-# constraints_type = ['<=']  # Constraint types
-# goals_type = ['>=', '>=', '>=']  # Goals types
-# priorities = [1, 2, 1]  # Priorities for goals
-# variables_types = ["Non-negative", "Non-negative"]  # x1 is non-negative, x2 is URS
-# np.set_printoptions(precision=3, suppress=True)
-#
-# solution, iterations, mainRow, basic_var, isDone = goal_method(
-#     2, A, RHS_A, G, RHS_G, constraints_type, goals_type, variables_types, priorities
-# )
-#
-# # Print results
-# for i in range(len(isDone)):
-#     if isDone[i]:
-#         print(f"Goal {i+1} is achieved")
-#     else:
-#         print(f"Goal {i+1} is not achieved")
-#
-# print("\nOptimal solution:", solution)
-# print("\nBasic variables:", basic_var)
-# print("\nMain row variables:", mainRow)
-#
-# # Print iterations
-# for i, iteration in enumerate(iterations):
-#     if isinstance(iteration, list):  # Skip entering/leaving var info
-#         continue
-#     print(f"\nIteration {i}:")
-#     print(iteration)
-#
-# print("Column headers:", mainRow)
-# print("Basic variables:", basic_var)
-# print("Solution", solution)
+# Example usage
+# Example with URS variable
+A = np.array([[100, 60],[200,0],[100,400]])  # Constraint coefficients (15x1 + 30x2 <= 150)
+G = np.array([[7, 3], [10, 5], [5, 4]])  # Goals coefficients
+RHS_A = np.array([600,1000,1200])  # RHS of constraints
+RHS_G = np.array([40,60,35])  # RHS of goals
+constraints_type = ['<=',"<=","="]  # Constraint types
+goals_type = ['<=', '=', '>=']  # Goals types
+priorities = [3, 2, 1]  # Priorities for goals
+variables_types = ["Non-negative", "Non-negative"]  # x1 is non-negative, x2 is URS
+np.set_printoptions(precision=3, suppress=True)
+
+solution, iterations, mainRow, basic_var, isDone = goal_method(
+    2, A, RHS_A, G, RHS_G, constraints_type, goals_type, variables_types, priorities
+)
+
+# Print results
+for i in range(len(isDone)):
+    if isDone[i]:
+        print(f"Goal {i+1} is achieved")
+    else:
+        print(f"Goal {i+1} is not achieved")
+
+print("\nOptimal solution:", solution)
+print("\nBasic variables:", basic_var)
+print("\nMain row variables:", mainRow)
+
+# Print iterations
+for i, iteration in enumerate(iterations):
+    if isinstance(iteration, list):  # Skip entering/leaving var info
+        continue
+    print(f"\nIteration {i}:")
+    print(iteration)
+
+print("Column headers:", mainRow)
+print("Basic variables:", basic_var)
+print("Solution", solution)

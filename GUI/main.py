@@ -443,12 +443,7 @@ class LPSolverGUI(QMainWindow):
         elif self.goal_radio.isChecked():
             method = "Goal Programming"
 
-        QMessageBox.information(self, "Solving Problem",f"Solving using {method}.")                                
-
-        
-#################################################################################################################################
-
-      
+        QMessageBox.information(self, "Solving Problem",f"Solving using {method}.")
         coff_of_objectiveFunction = [] 
         A = []  
         b = []
@@ -550,17 +545,6 @@ class LPSolverGUI(QMainWindow):
                 goal_types = np.array(goal_types)
                 priorities = np.array(priorities)
 
-                # print(len(coff_of_objectiveFunction))
-                # print(A)
-                # print(b)
-                # print(goals)
-                # print(rhs_goals)
-                # print(constraint_type)
-                # print(goal_types)
-                # print(variables_type)
-                # print(priorities)
-                # print(num_goals)
-                
                 solution, iterations, main_row, basic_var,is_done = goal_method(len(coff_of_objectiveFunction),A,b,goals,rhs_goals,constraint_type,goal_types,variables_type,priorities)
                 for i, iteration in enumerate(iterations):
                     # Only print tableaus, not entering/leaving vars
@@ -576,7 +560,7 @@ class LPSolverGUI(QMainWindow):
         self.tabs.setCurrentIndex(1)
         self.solution_status.setText(message)
         self.solution_status.setStyleSheet("font-weight: bold; color: #8FBCBB;")
-        if(method=="Two-Phase Method"):
+        if method=="Two-Phase Method":
             self.obj_value.setText(str(iterations[1][-1][-1][-1]))
         else:
             self.obj_value.setText(str(iterations[-1][-1][-1]))
@@ -603,7 +587,7 @@ class LPSolverGUI(QMainWindow):
                 self.goal_satisfaction_table.setItem(i, 1, QTableWidgetItem(f"{is_done[i]}"))
         else:
             self.goal_satisfaction_group.setVisible(False)
-########################################################################################################################################
+
 
 
         if method =="Two-Phase Method":
