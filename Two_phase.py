@@ -176,7 +176,10 @@ def __execute_phase2(tablue, artificial_vars, main_row, basic_var, isMax):
     iterations = []
     solution = None
 
+    copied_tablue = tablue.copy()
+    make_vars_zeros_Linearly(tablue, main_row, basic_var)
     iterations, solution, new_basic_vars = __excute_simplex(tablue, basic_var, main_row, artificial_vars, 2, isMax)
+    iterations.insert(0,copied_tablue)
     return iterations, solution 
 
 def make_vars_zeros_Linearly(tablue, main_row, basic_var):
@@ -244,6 +247,10 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
         for i in range(len(tableau)):
             if i != leaving_var:
                 tableau[i, :] -= tableau[i, entering_var] * tableau[leaving_var, :]
+                #id there is number <= 1e-10 in tableau change to 0.0
+                for j in range(len(tableau[0])):
+                    if abs(tableau[i, j]) <= 1e-10:
+                        tableau[i, j] = 0.0
 
     # Check if phase 1 was successful (all artificial variables = 0)
     if artificial_vars:
