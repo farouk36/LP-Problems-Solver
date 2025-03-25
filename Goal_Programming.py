@@ -187,10 +187,7 @@ def goal_method( num_vars_original , A, RHS_A, G, RHS_G, constraint_types, Goal_
         Zs.append("z" + str(i+1))
         deviation_vars.append("d" + str(i+1)+ "-")
         deviation_vars.append("d" + str(i+1)+ "+")
-        if Goal_types[i] == ">=":
-            basic_var.append(deviation_vars[i*2])
-        else:
-            basic_var.append(deviation_vars[i*2+1])
+        basic_var.append(deviation_vars[i*2])
 
     mainRow.extend(deviation_vars)
     print(mainRow)

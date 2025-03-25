@@ -560,14 +560,14 @@ class LPSolverGUI(QMainWindow):
                 # print(variables_type)
                 # print(priorities)
                 # print(num_goals)
-                #
-                # solution, iterations, main_row, basic_var,is_done = goal_method(len(coff_of_objectiveFunction),A,b,goals,rhs_goals,constraint_type,goal_types,variables_type,priorities)
-                # for i, iteration in enumerate(iterations):
-                #     # Only print tableaus, not entering/leaving vars
-                #     print(f"Iteration {i}:")
-                #     print(iteration)
-                #     print()
-                # print(solution)
+                
+                solution, iterations, main_row, basic_var,is_done = goal_method(len(coff_of_objectiveFunction),A,b,goals,rhs_goals,constraint_type,goal_types,variables_type,priorities)
+                for i, iteration in enumerate(iterations):
+                    # Only print tableaus, not entering/leaving vars
+                    print(f"Iteration {i}:")
+                    print(iteration)
+                    print()
+                print(solution)
         except Exception as e:
             QMessageBox.warning(self, "Error", str(e))
             return
