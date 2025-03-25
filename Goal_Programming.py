@@ -217,8 +217,9 @@ def goal_method( num_vars_original , A, RHS_A, G, RHS_G, constraint_types, Goal_
 
     print (mainRow)
 
+    j=0
     for i in range(len(RHS_G), len(RHS_G)+len(RHS_A), 1):
-        j=0
+  
         if j < num_constraints:
                 if constraint_types[j] == ">=":
                     tableau[i, start_slack + len(unrestricted_indices)] = -1

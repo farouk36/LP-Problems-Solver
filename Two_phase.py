@@ -127,7 +127,7 @@ def two_phase_method(c, A, b, constraint_types, isMax,variable_types):
         if i in unrestricted_indices:
             num_of_passes += 1
             new_tablue[-1, i + num_of_passes] = c[i]
-
+    make_vars_zeros_Linearly(new_tablue, main_row, new_basic_vars)
     #excute Phase 2
     iterations, solution = __execute_phase2(new_tablue, artificial_vars, main_row, new_basic_vars, isMax)
 
@@ -280,17 +280,17 @@ def __excute_simplex(tableau, basic_var, main_row, artificial_vars ,phase, isMax
 
 
 # # Define the problem
-# c = np.array([10,12,15,8,11])  # Objective function coefficients
-# A = np.array([[2,3,4,1,5], [5,2,1,3,2], [1,4,2,3,1], [3,1,3,2,4]])  # Constraint coefficients
-# b = np.array([50,60,40,55])  # RHS of constraints
-# constraints_type = ['<=', '<=', '<=', '<=']  # Constraint types
-# isMax = 1  # 0 for minimization, 1 for maximization
-# variables_types =np.array(["Non-negative","Non-negative","Non-negative","Non-negative"])
+# c = np.array([2,3])  # Objective function coefficients
+# A = np.array([[0.5 , 0.25], [1,3], [1,1]])  # Constraint coefficients
+# b = np.array([4,20,10])  # RHS of constraints
+# constraints_type = ['<=', '>=', '=']  # Constraint types
+# isMax = 0  # 0 for minimization, 1 for maximization
+# variables_types =np.array(["Unrestricted","Unrestricted"])
 # np.set_printoptions(precision=3, suppress=True)
-#
+
 # # Solve using the two-phase method
 # sol_array, sol_steps, main_row, basic_var = two_phase_method(c, A, b, constraints_type, isMax, variables_types)
-#
+
 # # Print the solution
 # print("Optimal solution:", sol_array)
 # print("Column headers:", main_row)
